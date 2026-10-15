@@ -42,8 +42,6 @@ h1 { font-size: 1.5em; margin: 0; line-height: 1.2; text-wrap: balance; }
 .btn:hover, button:hover { border-color: var(--accent); }
 button:focus-visible, textarea:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 a { color: var(--accent); }
-#timer { font-variant-numeric: tabular-nums; }
-#timer.running { border-color: var(--accent); color: var(--accent); }
 
 .row2 { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
 .strip { display: flex; gap: 6px; overflow-x: auto; flex: 1; min-width: 0; padding-bottom: 2px; scrollbar-width: thin; }
@@ -117,15 +115,30 @@ aside textarea { width: 100%; min-height: 110px; resize: vertical; font: calc(14
 kbd { font: 11px var(--font-mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: var(--surface); }
 .save-state { font-size: 12px; color: var(--muted); }
 
-/* Modes: Quick shows Levels 1-2 (product and behaviour) for a demo; Full adds Levels 3-5. */
+/* Modes: Quick shows the summary plus the highest zoom level that has changes; Full shows every level. */
 section[hidden], .strip a[hidden] { display: none; }
 .modes[hidden] { display: none; }
 .modes { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); }
 .modes button { border: 0; border-radius: 0; padding: 5px 12px; }
 .modes button + button { border-left: 1px solid var(--line); }
 .modes button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.modes button[disabled] { opacity: .4; cursor: not-allowed; }
+/* Explanations under System and Module items: hidden in Quick, a disclosure elsewhere. */
+details.explain { margin: 4px 0 2px; }
+details.explain > summary { cursor: pointer; color: var(--accent); font-size: .88em; font-weight: 500; width: fit-content; }
+details.explain dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; margin: 6px 0 4px; padding: 8px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+details.explain dt { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; padding-top: 2px; }
+details.explain dd { margin: 0; }
+@media (max-width: 560px) { details.explain dl { grid-template-columns: minmax(0, 1fr); } }
+ul.points li.done details.explain { text-decoration: none; }
+body.quick details.explain { display: none; }
+.jump { display: none; margin-left: 6px; padding: 1px 8px; font-size: 12px; color: var(--accent); vertical-align: 1px; }
+body.quick .jump { display: inline-flex; }
+li.flash { animation: flash 1.8s ease-out; }
+@keyframes flash { from { background: var(--ask-soft); } to { background: transparent; } }
 .lede { font-size: 1.08em; font-weight: 500; }
-.footprint { color: var(--muted); font-size: .92em; }
+.quick-note { display: none; color: var(--muted); font-size: .9em; margin: -2px 0 8px; }
+body.quick .quick-note { display: block; }
 .step[title] { cursor: help; }
 body.quick .files, body.quick pre, body.quick details.more { display: none; }
 body.quick ul.points { gap: 6px; }
@@ -142,10 +155,9 @@ body.quick ul.points li > span { font-size: 1.04em; line-height: 1.55; }
         <p class="meta">{{META}}</p>
       </div>
       <div class="bar">
-        <div class="modes" role="group" aria-label="Detail level" title="Quick: what people see and how it behaves (Levels 1-2), for a product demo. Full: adds how it's built, the code and the fine print (Levels 3-5). Key M switches.">
-          <button type="button" data-mode="quick">Quick</button><button type="button" data-mode="full">Full</button>
+        <div class="modes" role="group" aria-label="View">
+          <button type="button" data-mode="quick" title="The summary plus only the highest level with changes. Key M switches Quick and All.">Quick</button><button type="button" data-mode="all" title="Every level, from System down to Line, plus the demo, questions and shipping notes.">All</button><button type="button" data-mode="1" title="Only Level 1 · System: how the app is put together.">System</button><button type="button" data-mode="2" title="Only Level 2 · Module: design inside the existing architecture.">Module</button><button type="button" data-mode="3" title="Only Level 3 · Function: how the main pieces work.">Function</button><button type="button" data-mode="4" title="Only Level 4 · Line: guards, edge cases, styling, tests.">Line</button>
         </div>
-        <button type="button" id="timer" title="Time spent in this review">Start timer</button>
         {{DIFF_LINK}}
         <details class="files-menu">
           <summary class="btn">Files ({{FILE_COUNT}})</summary>
@@ -171,27 +183,35 @@ body.quick ul.points li > span { font-size: 1.04em; line-height: 1.55; }
     <div class="tally" id="tally"></div>
     <ul class="followups" id="followups"></ul>
     <ul class="levels" id="levels" aria-label="Levels"></ul>
-    <p class="hint"><kbd>M</kbd> Quick/Full · <kbd>J</kbd>/<kbd>K</kbd> next/previous section · <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> verdict · <kbd>N</kbd> notes · <kbd>Esc</kbd> leave notes · <kbd>T</kbd> timer · <span class="save-state" id="save-state" aria-live="polite">Notes: connecting…</span></p>
+    <p class="hint"><kbd>M</kbd> Quick/All · <kbd>J</kbd>/<kbd>K</kbd> next/previous section · <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> verdict · <kbd>N</kbd> notes · <kbd>Esc</kbd> leave notes · <span class="save-state" id="save-state" aria-live="polite">Notes: connecting…</span></p>
   </section>
 </div>
 
 <script>
 (function () {
   const VERDICTS = { good: "Looks good", ask: "Question", fix: "Needs change" };
+  // Zoom levels, from far out to close in.
   const LEVELS = {
-    1: ["Product", "What a person sees or does differently"],
-    2: ["Rules", "Behaviour behind the screen: who may, when emails go out, what is blocked, kept or cleared"],
-    3: ["Structure", "Architecture: new tables, endpoints and modules, and the frontend/backend split"],
-    4: ["Code", "The functions, components and tests that implement it"],
-    5: ["Detail", "Line-level fine print: edge cases, race guards, cleanups"],
+    1: ["System", "changes to how the app is put together: new tables, services, endpoint families, logic moved between frontend and backend, deploy order"],
+    2: ["Module", "design inside the existing architecture: new modules or components, moved responsibilities, shared helpers, changed request or response shapes"],
+    3: ["Function", "how the main pieces work: flows, the rules functions enforce, state handling, transactions"],
+    4: ["Line", "guards, edge cases, error handling, styling, copy, tests"],
   };
   const DEFAULT_MODE = "{{DEFAULT_MODE}}";
-  // Every section, whatever the mode. Quick shows only those marked data-quick.
+  // Every section, whatever the mode. Quick shows those marked data-quick plus the
+  // highest zoom level present (the lowest data-level number).
   const sections = Array.from(document.querySelectorAll("section[data-key]"));
   let mode = "full";
-  // A page with no Quick sections (older format) is always Full, and hides the switch.
-  const anyQuick = sections.some((s) => s.hasAttribute("data-quick"));
-  const inMode = (s) => mode === "full" || !anyQuick || s.hasAttribute("data-quick");
+  const levelsPresent = sections.map((s) => Number(s.dataset.level)).filter((n) => LEVELS[n]);
+  const topLevel = levelsPresent.length ? Math.min(...levelsPresent) : null;
+  // A page with nothing for Quick (older format) is always Full, and hides the switch.
+  const anyQuick = topLevel !== null || sections.some((s) => s.hasAttribute("data-quick"));
+  // Views: "quick" (summary + top level), "all", or "1".."4" (summary + that level).
+  const inMode = (s) => {
+    if (!anyQuick || mode === "all" || s.hasAttribute("data-quick")) return true;
+    const lv = Number(s.dataset.level);
+    return mode === "quick" ? lv === topLevel : lv === Number(mode);
+  };
   const shown = () => sections.filter(inMode);
   const stateEl = document.getElementById("save-state");
   const strip = document.getElementById("strip");
@@ -217,6 +237,15 @@ body.quick ul.points li > span { font-size: 1.04em; line-height: 1.55; }
     state[key] = { text: "", status: "", covered: [] };
     const lv = LEVELS[s.dataset.level], step = s.querySelector(".step");
     if (lv && step) step.title = "Level " + s.dataset.level + " · " + lv[0] + ": " + lv[1];
+    // In Quick, say why the page starts at this level when it isn't System.
+    if (lv && Number(s.dataset.level) === topLevel && topLevel > 1 && step) {
+      const q = document.createElement("p");
+      q.className = "quick-note";
+      const skipped = [];
+      for (let n = 1; n < topLevel; n++) skipped.push(LEVELS[n][0]);
+      q.textContent = "No " + skipped.join(" or ") + "-level changes in this PR, so Quick starts at " + lv[0] + ".";
+      s.querySelector("h2").after(q);
+    }
 
     // Verdict buttons above the notes box.
     const v = document.createElement("div");
@@ -238,7 +267,7 @@ body.quick ul.points li > span { font-size: 1.04em; line-height: 1.55; }
       li.append(cb, span);
       cb.addEventListener("change", () => setCovered(s, i, cb.checked));
       li.addEventListener("click", (e) => {
-        if (e.target === cb || e.target.closest("a, summary")) return;
+        if (e.target === cb || e.target.closest("a, summary, .explain, .jump")) return;
         cb.checked = !cb.checked; setCovered(s, i, cb.checked);
       });
     });
@@ -365,32 +394,18 @@ body.quick ul.points li > span { font-size: 1.04em; line-height: 1.55; }
 
   function go(s) { s.scrollIntoView({ block: "start" }); markCurrent(s); }
 
-  // Review timer: per-device, survives a reload.
-  const timerBtn = document.getElementById("timer");
-  let started = lsGet(LS + ":timer", null), tick = null;
-  const fmt = (ms) => { const t = Math.floor(ms / 1000), h = Math.floor(t / 3600), m = Math.floor(t / 60) % 60, s = t % 60; return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(s).padStart(2, "0"); };
-  function drawTimer() {
-    timerBtn.classList.toggle("running", !!started);
-    timerBtn.textContent = started ? "⏱ " + fmt(Date.now() - started) : "Start timer";
-    timerBtn.title = started ? "Click to reset" : "Time spent in this review";
-  }
-  function runTimer() { clearInterval(tick); if (started) tick = setInterval(drawTimer, 1000); drawTimer(); }
-  function toggleTimer() { started = started ? null : Date.now(); lsSet(LS + ":timer", started); runTimer(); }
-  timerBtn.addEventListener("click", toggleTimer);
-  runTimer();
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && e.target.tagName === "TEXTAREA") { e.target.blur(); return; }
     if (e.metaKey || e.ctrlKey || e.altKey || /^(TEXTAREA|INPUT|SELECT)$/.test(e.target.tagName)) return;
     const vis = shown(), i = vis.indexOf(current), k = e.key.toLowerCase();
-    if (k === "m") setMode(mode === "quick" ? "full" : "quick");
+    if (k === "m") setMode(mode === "quick" ? "all" : "quick");
     else if (k === "j" && i < vis.length - 1) go(vis[i + 1]);
     else if (k === "k" && i > 0) go(vis[i - 1]);
     else if (k === "1") setStatus(current, "good");
     else if (k === "2") setStatus(current, "ask");
     else if (k === "3") setStatus(current, "fix");
     else if (k === "n") { e.preventDefault(); area(current).focus({ preventScroll: true }); }
-    else if (k === "t") toggleTimer();
   });
 
   strip.addEventListener("click", (e) => {
@@ -407,10 +422,15 @@ body.quick ul.points li > span { font-size: 1.04em; line-height: 1.55; }
   setSize(lsGet(LS + ":big", false) === true);
   sizeBtn.addEventListener("click", () => { const on = !document.body.classList.contains("big"); setSize(on); lsSet(LS + ":big", on); });
 
-  // Quick / Full. Remembered per viewer; the page opens in DEFAULT_MODE the first time.
+  // View picker. Remembered per viewer; the page opens in DEFAULT_MODE the first time.
   const modeBtns = Array.from(document.querySelectorAll(".modes button"));
+  modeBtns.forEach((b) => {
+    const n = Number(b.dataset.mode);
+    if (n && !levelsPresent.includes(n)) { b.disabled = true; b.title = "No " + LEVELS[n][0] + "-level changes in this PR."; }
+  });
   function setMode(m) {
-    mode = m === "full" ? "full" : "quick";
+    if (m === "full") m = "all";
+    mode = m === "all" || (LEVELS[m] && levelsPresent.includes(Number(m))) ? String(m) : "quick";
     document.body.classList.toggle("quick", mode === "quick");
     sections.forEach((s) => {
       s.hidden = !inMode(s);
@@ -425,7 +445,25 @@ body.quick ul.points li > span { font-size: 1.04em; line-height: 1.55; }
   modeBtns.forEach((b) => b.addEventListener("click", () => setMode(b.dataset.mode)));
   if (!anyQuick) document.querySelector(".modes").hidden = true;
   document.getElementById("levels").innerHTML = Object.entries(LEVELS).map(([n, [name, what]]) =>
-    "<li><b>Level " + n + " · " + name + "</b> " + (n <= 2 ? "(Quick and Full)" : "(Full only)") + ": " + what + "</li>").join("");
+    "<li><b>Level " + n + " · " + name + "</b>" + (Number(n) === topLevel ? " (shown in Quick for this PR)" : "") + ": " + what + "</li>").join("") +
+    "<li>Quick shows the summary plus only the highest level with changes; Explain › on an item opens its fuller explanation in All. All shows every level, and each level button shows just that one.</li>";
+
+  // "Explain ›" on Quick items that have an explanation: switch to All, open it, scroll to it.
+  document.querySelectorAll("details.explain").forEach((d) => {
+    const li = d.closest("li");
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "jump"; b.textContent = "Explain ›";
+    b.title = "Open the fuller explanation in the All view";
+    d.before(b);
+    b.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setMode("all");
+      d.open = true;
+      li.scrollIntoView({ block: "center" });
+      markCurrent(d.closest("section"));
+      li.classList.remove("flash"); void li.offsetWidth; li.classList.add("flash");
+    });
+  });
   setMode(lsGet(LS + ":mode", DEFAULT_MODE));
 
   document.getElementById("copy-all").addEventListener("click", () => {
@@ -444,7 +482,6 @@ body.quick ul.points li > span { font-size: 1.04em; line-height: 1.55; }
       if ((x.text || "").trim()) lines.push(x.text.trim());
       lines.push("");
     });
-    if (started) lines.push("_Review time: " + fmt(Date.now() - started) + "_");
     const out = lines.length > 2 ? lines.join("\n").trim() : "(no notes yet)";
     const done = () => { btn.textContent = "Copied"; setTimeout(() => (btn.textContent = "Copy follow-ups"), 1500); };
     const fallback = () => {

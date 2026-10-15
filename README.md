@@ -33,7 +33,7 @@ Then in Claude Code, inside the repository you work on:
 | `feature-refine` | The detailed product interview for a large feature, one question at a time. |
 | `feature-investigate` | Read-only look at how the repository behaves today, written up as private findings. |
 | `feature-plan` | The implementation plan and test plan, from the spec and findings. |
-| `review-walkthrough` | Builds a one-page cue sheet for an in-person review of a branch or PR, with a Quick/Full switch and a wrap-up that collects follow-ups. |
+| `review-walkthrough` | Builds a one-page cue sheet for an in-person review of a branch or PR. Changes are sorted into four zoom levels (System, Module, Function, Line); Quick shows only the highest level with changes, with Explain jumps to a short before/now explanation, and a view picker shows all levels or any one. A wrap-up collects follow-ups. |
 
 ### Agents (`agents/`)
 

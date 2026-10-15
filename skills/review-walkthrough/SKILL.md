@@ -1,39 +1,41 @@
 ---
 name: review-walkthrough
-description: Build an in-person review walkthrough page for the current branch or a PR and publish it as a private artifact. It sorts every change into five levels (Product, Rules, Structure, Code, Detail) and has a Quick/Full switch. Quick shows only what people see and how it behaves, in plain English, for a product demo. Full adds architecture, code and fine print as tickable cues. Each section has a verdict and notes, plus a file list, a timer and a wrap-up that collects follow-ups. Use when the user asks for a review walkthrough, a review doc, a code review support page, or "prep this for review".
+description: Build an in-person review walkthrough page for the current branch or a PR and publish it as a private artifact. It sorts every change into four zoom levels (System, Module, Function, Line) and has a view picker. Quick shows a one-line summary plus only the highest level that has changes, in plain English, with "Explain ›" jumps to a fuller before/now explanation. All shows every level; each level can also be viewed alone. Each section has a verdict and notes, plus a file list and a wrap-up that collects follow-ups. Use when the user asks for a review walkthrough, a review doc, a code review support page, or "prep this for review".
 ---
 
 # Review walkthrough
 
 A one-page **cue sheet** for an in-person review. The user talks; the page gives them something to talk from and somewhere to record the outcome.
 
-Most reviews are **product reviews**: the user shows a reviewer (often Raj, ~30 minutes, 2–3 PRs) what changed in the product, and the reviewer suggests behaviour or workflow changes. No code is shown. So the page opens in **Quick** mode, which is plain English about the product only. **Full** mode adds the engineering levels for a code review. One button (or `M`) switches.
+Most reviews are short: the user and a reviewer (often Raj, ~30 minutes, 2–3 PRs) look at the big decisions, and the reviewer suggests changes. So the page opens in **Quick** mode: one sentence on what the PR does for users, then only the **highest zoom level that has changes**. A PR that adds a table opens on System. A UI tweak has nothing at System or Module, so Quick drops to Function or Line by itself. **All** shows every level, top down, and each level button (System, Module, Function, Line) shows just that level with the summary. `M` switches Quick and All.
+
+Every System and Module item carries a short **explanation** (before, now, and what it connects to) for when the reviewer asks "tell me more". Quick hides it and shows **Explain ›** instead, which switches to All, opens the explanation and scrolls to it.
 
 `template.html` holds all styling and behavior and `build.py` fills it from git. You write only the `<section>` blocks. The page already provides:
-- **Header:** title, branch, SHA and PR; **Quick / Full** switch; **Diff** button; **Files** dropdown with +/− counts and GitHub links; review **timer**; **A+** for a TV; **Copy follow-ups**.
+- **Header:** title, branch, SHA and PR; **view picker** (Quick · All · System · Module · Function · Line, with empty levels disabled); **Diff** button; **Files** dropdown with +/− counts and GitHub links; **A+** for a TV; **Copy follow-ups**.
 - **Section strip** with a status dot per section and an "x/y reviewed" count for the sections in the current mode.
 - **Pointers:** each bullet in `ul.points` gets a tick box.
 - **Per section:** verdict buttons (Looks good / Question / Needs change) and a notes box.
-- **Wrap-up:** a tally, every question, change request and note (from both modes), and a legend of the five levels.
-- **Keys:** `M` Quick/Full, `J`/`K` next/previous section, `1` `2` `3` verdict, `N` notes, `Esc` leave notes, `T` timer.
+- **Quick note:** when the top level isn't System, Quick says which levels were empty.
+- **Wrap-up:** a tally, every question, change request and note (from both modes, and from section keys an earlier version of the page had), and a legend of the four levels.
+- **Keys:** `M` Quick/All, `J`/`K` next/previous section, `1` `2` `3` verdict, `N` notes, `Esc` leave notes.
 
 Verdicts, ticks and notes save to the artifact's database by section key, so republishing keeps them.
 
 Be fast. Don't ask questions unless the base branch can't be worked out. Don't run tests, typechecks or linters. Report only what this session, the PR or the history shows, and say plainly what hasn't been run.
 
-## The five levels
+## The four zoom levels
 
-Every change in the diff belongs to exactly one level. Sort by the first question that answers yes.
+These are distances from the code, not kinds of change. Every change goes at the **highest** level where it matters. Sort by the first test that answers yes.
 
-| # | Name | Test | Shown in |
+| # | Name | What counts | Test |
 |---|---|---|---|
-| 1 | **Product** | Would someone using the product notice it? A new button, page, column, flow, wording, or email they receive. | Quick + Full |
-| 2 | **Rules** | Does it change what happens without a visible control? Who is allowed, when an email goes out, what is blocked, what is kept, copied or cleared, what happens on failure or a double click. | Quick + Full |
-| 3 | **Structure** | Would an architect draw it on a whiteboard? A new table or migration, a new endpoint or server action, a new module, logic moved between frontend and backend, a new shared piece. | Full |
-| 4 | **Code** | Would a reviewer read it in the diff? Which functions and components implement it, and the tests. | Full |
-| 5 | **Detail** | Does it only matter to someone reading the line? Race guards, edge cases, browser quirks, isolation levels, cleanups, comments. | Full |
+| 1 | **System** | Changes to how the app is put together: a new table or data model, a new service or integration, a new family of endpoints or a new capability (bulk updates, export, background job), logic moved between frontend and backend or between services, a new auth or permission model, a deploy-order constraint, a new pattern other code must now follow. | Would it change the diagram of the whole app? |
+| 2 | **Module** | Design inside the existing architecture: a new module or component, responsibilities moved between files, a new shared helper used across layers, a changed request or response shape, a new status or field threaded through every layer, a deliberate boundary (e.g. logic kept out of browser-callable code). | Would it change the diagram of this one feature? |
+| 3 | **Function** | How the main pieces work: the main flows, the rules a function enforces (what's copied, when emails go out), state handling, transaction and concurrency choices, caps and limits. | Would you explain it with the function open on screen? |
+| 4 | **Line** | Guards, edge cases, error handling, race fixes, browser quirks, styling, copy tweaks, comments, tests. | Does it only matter to someone reading that line? |
 
-One real change often shows up on several levels: "bulk close" is a bar (1), never overwrites a reply (2), a new endpoint (3), `applyBulk` and `BulkBar` (4), and a reply-aware update guard (5). Write each level's part at its own level. Never let a lower level leak upward: no file, function, table or endpoint names in Levels 1–2.
+Be strict about Levels 1 and 2. Most PRs have **nothing** at System. A new button, column, dialog, filter or wording change is never System or Module on its own; it's Function or Line. Don't promote a change to fill a level. Empty is the right answer, and it's what makes Quick honest.
 
 ## 1. Gather the facts (in parallel)
 
@@ -45,72 +47,82 @@ One real change often shows up on several levels: "bulk close" is a bar (1), nev
 
 ## 2. Build the level map (before writing anything)
 
-Write `<scratchpad>/levels.md`: for each of the five levels, list every change at that level in one line each. Read the diff for this, not just the PR body; the PR body tells you what was meant, the diff tells you what happened. Then check:
-- Every user-visible change in the diff has a Level 1 line.
-- Every Level 3 item (each new table, endpoint, module) has at least one Level 1 or 2 line explaining why a person would care. If it has none, it's an internal refactor: say so in the footprint line.
+Write `<scratchpad>/levels.md`: under each of the four levels, every change at that level in one line. Read the diff for this; the PR body says what was meant, the diff says what happened. Then:
+- Find the **top level**: the highest level with anything in it. That's what Quick will show.
+- For each System or Module item, note the decision, any real alternative it rejected, how this part worked before, and what code around it calls it or is affected by it. These become its explanation.
+- Check nothing is promoted: re-run the tests above on every Level 1 and 2 line.
 
 ## 3. Write the sections
 
-Write them to `<scratchpad>/sections.html` in this order. Drop any that would be empty, except `product`.
+Write them to `<scratchpad>/sections.html` in this order. **Leave out any level section that is empty.** The top level is shown in Quick automatically; the build needs no flag.
 
 | key | attrs | step label | h2 | contents |
 |---|---|---|---|---|
-| `product` | `data-quick data-level="1"` | Level 1 · Product | What people see | `<p class="lede">` why, one sentence. `<p class="footprint">` "Under the hood: …", one sentence sizing Level 3 in plain words. Then `ul.points`, 3–6 items. |
-| `try` | `data-quick` | Show it | Demo | `.try` with 3–5 steps: page, role, click, what you see. Only if something is user-facing. |
-| `rules` | `data-quick data-level="2"` | Level 2 · Rules | How it behaves | `ul.points`, 2–6 items. |
-| `decide` | `data-quick` | For discussion | Questions to settle | `ul.points`, each starting `<span class="flag">Decide</span>`. Product and workflow questions a reviewer can answer without code, plus deployment steps someone must own. |
-| `structure` | `data-level="3"` | Level 3 · Structure | How it's built | `<h3>` per layer that changed (Frontend / Backend / Data / Shared), 1–3 pointers each. Optional `.compare` Before/Now when the shape changed. |
-| `code` | `data-level="4"` | Level 4 · Code | Code changes | `<h3>` per mechanism, 1–4 pointers with file chips. A `<pre>` of 1–3 lines only when a signature says it faster. |
-| `detail` | `data-level="5"` | Level 5 · Detail | Fine print | `ul.points` of guards, edge cases and quirks, with file chips. Then one pointer summarising the tests. |
+| `overview` | `data-quick` | Summary | What this does | One `<p class="lede">`: what the PR does for users, one sentence, plain English. Nothing else. |
+| `try` | | Show it | Demo | `.try` with 3–5 steps: page, role, click, what you see. Only if something is user-facing. |
+| `system` | `data-level="1"` | Level 1 · System | System changes | `ul.points`, each item with a `details.explain` |
+| `module` | `data-level="2"` | Level 2 · Module | Module changes | `ul.points`, each item with a `details.explain`; optionally grouped with `<h3>` Frontend / Backend / Data / Shared |
+| `function` | `data-level="3"` | Level 3 · Function | How it works | `<h3>` per mechanism, 1–4 pointers each |
+| `line` | `data-level="4"` | Level 4 · Line | Fine print | `ul.points`; last pointer summarises the tests |
+| `decide` | | For discussion | Questions to settle | `ul.points`, each starting `<span class="flag">Decide</span>` |
 | `ship` | | Ship it | Ship it | Migration (+ rollback), risk, "Fix before merge" with `<span class="flag">Fix</span>` (or "nothing found"), Checks, Review, Next. |
 
-### Writing Levels 1–2 and Decide (Quick mode)
+### Writing the top level (shown in Quick)
 
-These are read aloud to someone who won't see code.
-- **Plain English, full sentences.** One or two sentences per item, about 15–35 words. A person who has never seen the codebase understands it.
-- **Start with who or what the person sees:** "Admins can…", "The Feedback list now…", "A ticket moved back to In progress…".
-- **Use the product's names** for pages, buttons and statuses, in their exact on-screen wording. Bold the first few words naming the thing.
-- **No code words:** no file, function, table, endpoint, transaction or migration names, no "API", "server action", "state". Say "saved", "all or nothing", "only admins", "the page reloads".
-- **Say the effect, not the mechanism:** "a double click makes one copy, not two", not "buttons disabled while busy".
-- **At most six items per level.** Merge or drop the rest; the rest belongs lower.
-- **Footprint line:** one sentence, counts in words: "Under the hood: one new database table and two new server endpoints; no permission changes."
+Whichever level is the top one, write it as **plain sentences**, because it's read aloud to someone who may not open the code.
+- One or two sentences per item, about 15–40 words. **Say the decision, then why it matters.** Name the rejected alternative when there was a real one: "…instead of living inside the single-ticket endpoint."
+- At most five items. Merge related ones.
+- Plain words. Name tables, endpoints or modules only when the name itself helps, and gloss it ("a new status-history table"). No function names, no file names.
+- File chips are allowed at the end of an item; Quick hides them.
 
-### Writing Levels 3–5 (Full mode)
+### Writing explanations (System and Module items)
+
+Every System and Module item ends with an explanation, collapsed by default. It's for when the reviewer wants more than the one-liner but not the code: summarised detail with the context of the code before and around it.
+
+```html
+<details class="explain"><summary>More detail</summary><dl>
+  <dt>Before</dt><dd>How this part worked before the PR, or that it didn't exist.</dd>
+  <dt>Now</dt><dd>What it does now, in two or three sentences.</dd>
+  <dt>Around it</dt><dd>What calls it, what it calls, and what else it affects.</dd>
+  <dt>Why</dt><dd>Why this way; the alternative it beat. Leave out if there was no real choice.</dd>
+</dl></details>
+```
+
+- One to three plain sentences per row. Describe code in words ("the single-ticket endpoint", "the Feedback page's data loader"). Name a module only with a gloss. No code, no line numbers.
+- Put the `details.explain` inside the `<li>`, after the item text and any file chip.
+
+### Writing the levels below the top
 
 These are cues for a code review.
 - **Each pointer is a cue, not an explanation.** About 4–12 words, fragments are fine, nouns first. Example: `<strong>Submit</strong> disabled until every 1 has a comment`.
 - One idea per pointer. No "because" clauses; the user says those out loud.
 - Bold the first word or two when it names the thing.
 - Put a file chip inline at the end of the pointer it supports.
+- A `<pre>` of 1–3 lines only when a signature says it faster than words.
 
 ### Section shape
 
 `data-key` is stable; keep the same keys on republish.
 
 ```html
-  <section data-key="product" data-quick data-level="1">
+  <section data-key="overview" data-quick>
     <div class="content">
-      <p class="step">Level 1 · Product</p>
-      <h2>What people see</h2>
-      <p class="lede">Admins can start a Role Template from an existing one instead of from blank.</p>
-      <p class="footprint">Under the hood: one new server action and a copy routine; no database changes.</p>
-      <ul class="points">
-        <li><strong>"Copy from Template"</strong> is a new button on the Role Templates page. It opens a searchable list of every template, and picking one creates the copy and opens it.</li>
-      </ul>
+      <p class="step">Summary</p>
+      <h2>What this does</h2>
+      <p class="lede">Admins can create a Role Template by copying an existing one.</p>
     </div>
-    <aside><textarea id="n-product" aria-label="Notes" placeholder="Notes"></textarea></aside>
+    <aside><textarea id="n-overview" aria-label="Notes" placeholder="Notes"></textarea></aside>
   </section>
 
-  <section data-key="code" data-level="4">
+  <section data-key="module" data-level="2">
     <div class="content">
-      <p class="step">Level 4 · Code</p>
-      <h2>Code changes</h2>
-      <h3>Server action</h3>
+      <p class="step">Level 2 · Module</p>
+      <h2>Module changes</h2>
       <ul class="points">
-        <li><strong>copyRoleTemplate(sourceId)</strong>: admin check, then copy <span class="files"><a href="{{BLOB}}/app/src/lib/actions/admin.ts#L135" data-file="app/src/lib/actions/admin.ts" data-line="135"><code>admin.ts</code></a></span></li>
+        <li><strong>The copy logic lives in its own module</strong> that the browser can't call. Only the admin action calls it, after the admin check, instead of the copy sitting in the server-actions file where every export is callable. <span class="files"><a href="{{BLOB}}/app/src/lib/role-templates/copy.ts#L29" data-file="app/src/lib/role-templates/copy.ts" data-line="29"><code>copy.ts</code></a></span></li>
       </ul>
     </div>
-    <aside><textarea id="n-code" aria-label="Notes" placeholder="Notes"></textarea></aside>
+    <aside><textarea id="n-module" aria-label="Notes" placeholder="Notes"></textarea></aside>
   </section>
 ```
 
@@ -121,8 +133,6 @@ Other blocks:
 <div class="compare"><div><h4>Before</h4><ul><li>…</li></ul></div><div><h4>Now</h4><ul><li>…</li></ul></div></div>
 <details class="more"><summary>Show code</summary><pre><code>…</code></pre></details>
 ```
-
-Quick mode hides file chips, `<pre>` and `details.more` automatically, so a stray chip in Level 1–2 won't show, but don't write one.
 
 **File chips:** use `{{BLOB}}/path#L<n>` with `data-file` and `data-line`; `build.py` fills in the repository and head commit. Add `data-line` and `#L` only for lines confirmed with `grep -n` (on `git show <sha>:<path>` when the code isn't checked out). If the commit isn't pushed, use `<code data-file="…">` with no link. Escape `<`, `>` and `&` in code.
 
@@ -141,4 +151,4 @@ The script writes `~/.claude/review-walkthroughs/<repo>/<branch>.html` and print
 
 - **Existing URL, published earlier in this conversation:** publish the same file path again. **From an earlier conversation:** read it (`action: "read"`) first, then publish with that `url`. Either way leave out `icon` and `capabilities`.
 - **New:** load the `artifact-capabilities` skill. Publish with `icon: "review"`, a one-sentence `description` and `capabilities: {"db": {}, "user": {}}`. Then write the URL into the `.url` file the script named.
-- Reply with the link and the "Fix before merge" items, one line each. Don't repeat the rest of the page.
+- Reply with the link, which level Quick opens on, and the "Fix before merge" items, one line each. Don't repeat the rest of the page.
