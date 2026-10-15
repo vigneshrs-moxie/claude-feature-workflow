@@ -14,7 +14,12 @@ cd claude-feature-workflow
 ./install.sh
 ```
 
-The script links `skills/*` into `~/.claude/skills/` and `agents/*.md` into `~/.claude/agents/`. Anything already there with the same name is moved aside as `<name>.bak`. Because they are links, `git pull` updates them in place. Set `CLAUDE_DIR` to install somewhere other than `~/.claude`.
+The script does three things:
+- Links `skills/*` into `~/.claude/skills/` and `agents/*.md` into `~/.claude/agents/`. Because they are links, `git pull` here updates them in place.
+- Moves anything already there with the same name to `~/.claude/backups/claude-feature-workflow/<date>/`, outside the skills folder so Claude Code doesn't load it twice.
+- Clones the [git workflow docs](https://github.com/vigneshrs-moxie/moxie-portal-git-workflow) to `~/Projects/moxie-portal-git-workflow`, or updates them if already cloned. The Foreman reads them before any branch or PR step. Keep that location; the skills look for it there.
+
+Run it again after every `git pull`. Set `CLAUDE_DIR` to install somewhere other than `~/.claude`.
 
 Then in Claude Code, inside the repository you work on:
 
@@ -59,3 +64,9 @@ Every job keeps its own private folder under `~/.claude/feature-work/<slug>/` wi
 - `skills/feature/git-workflow.md` and `skills/feature-spec/workflow-gates.md` describe one team's remotes, branch naming and PR stages. Edit them for yours.
 - `skills/feature/checklists/` holds the review checklists per area (API, database, email, UI). Add your own.
 - Model choices live in each agent's front matter.
+
+## Credits and license
+
+Planned changes for test-first building, checking before claiming done, and systematic debugging draw on ideas from [Superpowers](https://github.com/obra/superpowers) by Jesse Vincent (MIT). They are rewritten in this workflow's own words.
+
+MIT licensed. See [LICENSE](LICENSE).

@@ -1,12 +1,12 @@
 # Git workflow for feature implementation
 
-**Source of truth:** `~/Projects/moxie-portal-git-workflow/` — read its `CLAUDE.md`, then `docs/engineering/git-workflow/` (`fork-to-release.md`, `branch-naming.md`, `feature-process.md`, `agent-rules.md`, `pull-requests.md`, `release-and-migrations.md`) and `.github/PULL_REQUEST_TEMPLATE.md`. Those documents are marked "proposed" for the team, but the human has chosen to follow them. When this file and those documents disagree, the documents win; report the drift.
+**Source of truth:** `~/Projects/moxie-portal-git-workflow/`, a clone of `github.com/vigneshrs-moxie/moxie-portal-git-workflow` that `install.sh` keeps up to date. If it is missing, tell the human to run `install.sh` from the workflow repo, and work from this summary meanwhile. Read its `CLAUDE.md`, then `docs/engineering/git-workflow/` (`fork-to-release.md`, `branch-naming.md`, `feature-process.md`, `agent-rules.md`, `pull-requests.md`, `release-and-migrations.md`) and `.github/PULL_REQUEST_TEMPLATE.md`. Those documents are marked "proposed" for the team, but the human has chosen to follow them. When this file and those documents disagree, the documents win; report the drift.
 
 This file is the short version the conductor and workers act on.
 
 ## Remotes (verify every time with `git remote -v`)
 
-In `moxie-portal-vrs` today: `origin` = personal fork `vigneshrs-moxie/moxie-portal-vrs`, `moxie` = org `Moxie-Pest-Control-Phoenix/moxie-portal`. Never assume; never treat `origin/main` or `origin/staging` as authoritative.
+Expected: `origin` = the developer's own personal fork, `moxie` = org `Moxie-Pest-Control-Phoenix/moxie-portal`. Each developer's fork differs, so read it from `git remote -v`; if the remotes don't match this shape, stop and ask. Never assume; never treat `origin/main` or `origin/staging` as authoritative.
 
 ## Baseline
 
@@ -46,7 +46,7 @@ Messages follow the common conventional style: `<type>(<area>): <what changed>`.
 
 | PR | Head → base | Gate |
 |---|---|---|
-| #1 intake | `vigneshrs-moxie/moxie-portal-vrs:<branch>` → `Moxie-Pest-Control-Phoenix/moxie-portal:<same branch>` | Developer self-reviews and manually merges. Raj not required. |
+| #1 intake | `<your-fork>:<branch>` → `Moxie-Pest-Control-Phoenix/moxie-portal:<same branch>` | Developer self-reviews and manually merges. Raj not required. |
 | #2 staging | `moxie:<branch>` → `moxie:staging` | Fresh CI + security; **Raj's submitted GitHub APPROVED review**; a human merges. |
 | #3 release | `moxie:staging` → `moxie:main` | Release owner; approval from someone other than the author; a human merges. Agents may draft the summary only. |
 
