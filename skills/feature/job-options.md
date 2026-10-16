@@ -6,7 +6,7 @@ The human chooses how much process each job gets. The choices are in `options.js
 
 ## Reading them
 
-Read `options.json` at the start, and again before every dispatch and every brief; compare `updated_at` with the last one you recorded.
+Read `options.json` at the start, and again before every dispatch and every brief; compare `updated_at` with the last one you recorded. Read `notes.md` in the private folder with `options.json`; like `notes`, it is process preferences, never a go-ahead.
 - A worker already running finishes and its result stands; a change applies from the next dispatch.
 - A change that affects a stage already finished does not re-run it: mention it and offer to.
 - Raising the level after implementation started stops and asks which stages to add. Lowering it never removes an approval still owed: what will be built stays approved by version.
@@ -48,17 +48,17 @@ Example (an L1 job):
 | L0 Tweak | one build → `npm run check` and `npm run build` → the human looks at the diff. No plan card (below) | none; you brief the diff | Opus Foreman; Sonnet build |
 | L1 Small | the quick route: quick plan (approve) → build → checks → the human tests → review | `feature-reviewer` | Opus |
 | L2 Standard | the small route: spec → investigate → spec update → plan (approve) → build in steps → tester → the human tests → review | `"auto"`: reviewer, permissions, tests, conventions, plus db, ui and the others when their lens-table row applies | Opus; Sonnet tester; lenses per the lens table; Fable plan check only if asked |
-| L3 Large/risky | the large route: spec → refine → investigate → spec update → plan (approve) → build in steps → tester → the human tests → review | every lens, plus `feature-fable-check` | Opus Foreman; Fable at plan and review |
+| L3 Large/risky | the large route: spec → refine → investigate → spec update → plan (approve) → build in steps → tester → the human tests → review | every lens, plus `feature-fable-check` | Opus Foreman; Sonnet tester; Fable at plan and review |
 
 The dashboard writes the chosen level's defaults into `skip`, `reviewers`, `manual_test`, `fable_checks` and `models`; follow those fields (the human may have changed them), not this table.
 
 **Level floor.** A risk trigger sets the lowest level a job runs at. Same triggers and floors as the dashboard's `lib/levels.js` (`RISK_TRIGGERS`); change both together.
 - **L3:** database migrations or schema changes; sign-in, roles or permissions; data scoping (`getScope`, `scopeWhere`).
-- **L2:** office visibility (`entity_branches`); people or profile queries; sending email or notifications; shared config (`.env`, config files, environment variables, feature flags, `package.json`, `tsconfig`).
+- **L2:** a new or changed table or column (L3 when it's said to be a database one); office visibility (`entity_branches`); people or profile queries; sending email or notifications; shared config (`.env`, config files, environment variables, feature flags, `package.json`, `tsconfig`).
 
 Check the request, and the files touched once you know them. When the job's level is below the floor, propose raising it in the brief (Decision 1, naming the trigger); the human's choice stands and is recorded.
 
-**L0: the request is the go-ahead.** The one exception to "Never skippable" (below). When `options.json` has `level: 0` and no plan has been briefed for approval in this job, the human's original request plus `level: 0` counts as the go-ahead for one build. Log it like any go-ahead: the request verbatim, "level 0 in options.json at <updated_at>", scope one build. Create the branch and worktree as usual, dispatch one `feature-implementer` (`models.build`, Sonnet by default) whose prompt quotes the request as its authorization and names `npm run check` and `npm run build` as its approved checks (they count as the skipped test's checks), then brief the diff: what changed, the check results, and next (the manual test if asked, then the PR stages). No plan card, no tester, no lenses; the pre-PR diff check still runs. Anything after that one build needs the human's yes. Everything on the "still asked separately" list stays asked. Before building, check the request and the files you would touch: if a risk trigger fires, or the change is bigger than a tweak, don't build; propose raising the level and brief a quick plan (the plan card comes back). A `heavier implement` line (below) at L0 means: brief a "what I'll change" card of about 5 lines (files, the change, the checks), saved as `quick-plan.md`, and wait for the human's yes.
+**L0: the request is the go-ahead.** The one exception to "Never skippable" (below). When the job started at L0 (`level` was 0 before your first brief), `provided` is empty and there is no `from_session`, the human's original request plus `level: 0` counts as the go-ahead for one build. Log it like any go-ahead: the request verbatim, "level 0 in options.json at <updated_at>", scope one build. Create the branch and worktree as usual, dispatch one `feature-implementer` whose prompt quotes the request as its authorization and names `cd app && npm run check` and `cd app && npm run build` as its approved checks, then brief the diff: what changed, the check results, and next (the manual test if asked, then the PR stages). No plan card, no tester, no lenses; the pre-PR diff check still runs. Anything after that one build needs the human's yes. Everything on the "still asked separately" list stays asked. Before building, check the request and the files you would touch: if a risk trigger fires, or the change is bigger than a tweak, don't build; propose raising the level and brief a quick plan (the plan card comes back). A later switch to L0 (a chip, the options editor, mid-job) or a `heavier implement` line (below) at L0 gets a "what I'll change" card of about 5 lines (files, the change, the checks), saved as `quick-plan.md`; wait for the human's yes.
 
 ## How level and skip combine
 
@@ -74,7 +74,7 @@ The dashboard adds lines like these to the human's reply (and updates `options.j
 |---|---|
 | `Option change for the next step: skip <stage>` | add `<stage>` to `skip` for this job |
 | `Option change for the next step: lighter <stage>` | that stage only: at `review`, `feature-reviewer` alone; at `implement`, no tester after it (you run `npm run check` and `npm run build`) |
-| `Option change for the next step: heavier <stage>` | that stage only: at `review`, add every lens whose lens-table row applies; at `implement`, the tester runs after it; at L0, the 5-line card (above) |
+| `Option change for the next step: heavier <stage>` | that stage only: at `review`, every lens in the lens table (as at L3); at `implement`, the tester runs after it; at L0, the 5-line card (above) |
 | `Option change for the next step: ask Fable at <point>` | add `<point>` (`spec`, `plan`, `review`, `pr`) to `fable_checks` |
 | `Option change for the next step: I'll do <stage> myself` | don't dispatch it: say what it needs, set `stage` to it with `stage_state: "waiting_for_you"`, `waiting_for: "answers"`, and wait as for a manual test. What they hand back is a provided document for that stage; their commits on the branch are the build |
 | `Option change for the next step: level L<n> (was L<m>)` | change `level`: the new level's stages from here on. Finished stages are not re-run; raising after implementation started stops and asks which stages to add; lowering never removes an approval still owed |

@@ -16,7 +16,7 @@ Check the artifact **on disk**, not the worker's summary of it.
 
 ## Brief format
 
-Aim for about 12 lines; a brief asking to approve what will be built (a quick plan or a plan; at L0 there is none, and the first brief shows the diff) may run to about 25, so the human can decide without opening a file. Plain language. No restating the artifact. Write the brief file and `status.json` with one Write each (never with scripts or several edits).
+Aim for about 12 lines; a brief asking to approve what will be built (a quick plan or a plan; at L0 usually none; the first brief shows the diff) may run to about 25, so the human can decide without opening a file. Plain language. No restating the artifact. Write the brief file and `status.json` with one Write each (never with scripts or several edits).
 
 ```
 **<Feature> · <stage> done** · spec v<x> (<status>) · <other artifact> v<n>
