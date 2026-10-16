@@ -16,6 +16,8 @@ Overwrite the whole file each time. Valid JSON, UTF-8, no comments. Use `null` f
   "slug": "copy-ticket-id",
   "title": "Copy Ticket ID",
   "route": "small",
+  "suggested_level": 2,
+  "level_reason": "Adds a button to one existing page; its query reads people, so at least L2.",
   "stage": "review",
   "stage_state": "waiting_for_you",
   "waiting_for": "approval",
@@ -56,9 +58,11 @@ Overwrite the whole file each time. Valid JSON, UTF-8, no comments. Use `null` f
 
 | Field | Values |
 |---|---|
-| `route` | `quick` / `small` / `large` / `null` (not decided yet; also while the job's flow is `auto`) |
+| `route` | `quick` (L0, L1) / `small` (L2) / `large` (L3) / `null` (no level yet) |
+| `suggested_level` | `0`–`3`: the level you propose (SKILL.md, Start; job-options.md, Level floor). Keep it in later writes; change it only when you propose another level. `null` when you have made no proposal |
+| `level_reason` | one line (under 400 characters) why, from the request and the paths touched; `null` with no proposal |
 | `kind` | `feature` / `bug` (from the job's options when set) |
-| `stage` | `spec`, `refine`, `investigate`, `spec-update`, `plan`, `implement`, `test`, `review`, `pr1`, `pr2`, `staging-qa`, `pr3`. The quick plan uses `plan` (brief `briefs/<nnn>-plan.md`, artifact "Quick plan" `quick-plan.md` vN in `artifacts`); `implement` only once its go-ahead is logged. Waiting for the human's manual test is `test` with `waiting_for: "answers"` |
+| `stage` | `spec`, `refine`, `investigate`, `spec-update`, `plan`, `implement`, `test`, `review`, `pr1`, `pr2`, `staging-qa`, `pr3`. The quick plan uses `plan` (brief `briefs/<nnn>-plan.md`, artifact "Quick plan" `quick-plan.md` vN in `artifacts`); `implement` only once its go-ahead is logged (at L0, the request: job-options.md). Waiting for the human's manual test is `test` with `waiting_for: "answers"` |
 | `stage_state` | `working` (a worker is running) · `waiting_for_you` (brief given, gate closed) · `blocked` (cannot continue: say why in `next_proposed`) · `done` (feature finished or stopped) |
 | `waiting_for` | `approval` (a go-ahead) · `answers` (questions open) · `permission` (a tool permission prompt) · `null` when not waiting |
 | `waiting_since` | when the brief was given; `null` when not waiting |

@@ -3,7 +3,7 @@
 You are a **worker** in the feature workflow, dispatched by the `/feature` conductor. These rules apply to every `feature-*` agent.
 
 - Read `~/.claude/skills/feature-spec/workflow-gates.md` first.
-- **The gate is already checked.** The conductor confirmed the human's go-ahead and logged it; your prompt quotes it verbatim with its scope. Work within that scope only. If the prompt has no authorization for your stage, return without doing the work and say so.
+- **The gate is already checked.** The conductor confirmed the human's go-ahead and logged it; your prompt quotes it verbatim with its scope. Work within that scope only. If the prompt has no authorization for your stage, return without doing the work and say so. At L0 (a tweak; `~/.claude/skills/feature/job-options.md`) the authorization is the human's original request, quoted, plus `level: 0` in options.json: it covers one build, and the request stands in for spec, plan and test plan.
 - **You cannot talk to the human.** Where a stage skill says to ask a question, present a gate, or wait, put that in your report instead and finish. Do not guess an answer to a product question.
 - **One stage only.** Stop when your stage is done. Never start the next stage.
 - **Files on disk are the record.** Re-read inputs from disk; write your artifact; update the artifacts table and stage history in `workflow-status.md` (the conductor owns the authorization log).

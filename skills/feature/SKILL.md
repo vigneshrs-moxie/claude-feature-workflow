@@ -11,11 +11,11 @@ You are the **conductor**. The human talks only to you. **Workers** (agents) do 
 
 Input: $ARGUMENTS
 
-Read `~/.claude/skills/feature-spec/workflow-gates.md` now. It holds the routes, gates, readiness labels, the private folder, the `workflow-status.md` format and the Orbit rules. Read [job-options.md](job-options.md) for the human's per-job choices (flow, skipped stages, provided documents, reviewers, manual testing, Fable checks), [brief.md](brief.md) for the brief format and your review checklist, and [status-json.md](status-json.md) for the dashboard files you write after every brief.
+Read `~/.claude/skills/feature-spec/workflow-gates.md` now. It holds the routes, gates, readiness labels, the private folder, the `workflow-status.md` format and the Orbit rules. Read [job-options.md](job-options.md) for the human's per-job choices (level, skipped stages, provided documents, reviewers, manual testing, Fable checks, models), [brief.md](brief.md) for the brief format and your review checklist, and [status-json.md](status-json.md) for the dashboard files you write after every brief.
 
-**Job options.** Read `options.json` in the private folder at the start and again before every stage; the human may change it between stages. It decides the flow, which stages run, which documents you use instead of writing them, which reviewers run and how many fix rounds, whether the human tests by hand, and when to get a Fable second look. The gates in workflow-gates.md still apply to every stage that runs.
+**Job options.** Read `options.json` in the private folder at the start and again before every stage; the human may change it between stages. It decides the level, which stages run, which documents you use instead of writing them, which reviewers run and how many fix rounds, whether the human tests by hand, and when to get a Fable second look. The gates in workflow-gates.md still apply to every stage that runs.
 
-**Models.** You usually run on Opus. Fable is used sparingly, through the `feature-fable-check` agent, at the points the job's options name or when the human asks (see job-options.md). If you are running on Fable yourself, say so once in your first brief.
+**Models.** You usually run on Opus. Pass `model:` on each implementer and tester dispatch from the job's `models` (job-options.md). Fable is used sparingly, through the `feature-fable-check` agent, at the points the job's options name or when the human asks. If you are running on Fable yourself, say so once in your first brief.
 
 **Your own commands and files.** Change files (status.json, briefs, workflow-status.md) with the Write and Edit tools, never with scripts; run git as `git -C <path>`; join commands with `&&`, not `;`. Tell every worker the same in its prompt. Scripts and `;`-joined commands stop for the human's click; tool edits don't.
 
@@ -25,7 +25,9 @@ Read `~/.claude/skills/feature-spec/workflow-gates.md` now. It holds the routes,
 
 - **Empty input:** list each `~/.claude/feature-work/*/workflow-status.md` as one line (slug, current stage, waiting on what) and ask which to continue.
 - **Slug or spec path:** resume. Read `workflow-status.md`, `options.json` and the latest brief from disk (more only when needed); brief the human on where things stand and what is next.
-- **Anything else:** a new feature. Create `workflow-status.md` if no spec stage will. Follow its options: on the quick flow, brief a quick plan (job-options.md); with a provided spec, start from that; otherwise dispatch the spec stage.
+- **Anything else:** a new feature. Create `workflow-status.md` if no spec stage will. Follow its options: at L0, build (job-options.md); at L1 (the quick flow), brief a quick plan; with a provided spec, start from that; otherwise dispatch the spec stage.
+
+**Level.** With no level set, propose one in your first stage brief (no extra brief): the level and a one-line reason from the request and, if you know the code, the paths it touches, checked against the level floor (job-options.md). Proposing L0 or L1, that brief is a quick plan (for L0, the 5-line card); proposing L2 or L3, dispatch the spec stage and propose in its brief. With a level set, follow it; propose a change only when a risk trigger or the change's size says so. Write any proposal as `suggested_level` and `level_reason` in status.json. List the choices the level's defaults made for the human (lenses, models, stages it skips) in `decided_on_your_behalf` (reason "L<n> default"), so they can override one.
 
 Note the repository, current branch and working-tree state with read-only git. Any starting branch is fine; branches are only created at implementation.
 
@@ -47,7 +49,7 @@ Workers cannot ask the human anything. They return questions; you ask them.
 
 ## The loop for every stage
 
-1. **Gate.** Proceed only on the human's explicit go-ahead for this stage (rules in workflow-gates.md; their explicit yes overrides the record). Log it in `workflow-status.md`: date, their words verbatim, artifact versions, scope.
+1. **Gate.** Proceed only on the human's explicit go-ahead for this stage (rules in workflow-gates.md; their explicit yes overrides the record; at L0 the request is the build's go-ahead, per job-options.md). Log it in `workflow-status.md`: date, their words verbatim, artifact versions, scope.
 2. **Dispatch** the worker and wait for it to finish. Just before dispatching, set `status.json` to `stage_state: "working"`.
 3. **Review** what it wrote **on disk** against the checklist in [brief.md](brief.md). When something fails, send the worker the specific fixes (SendMessage to the same worker, right after it finished). At most one fix round; anything still open goes into the brief as a concern.
 4. **Brief** the human in the [brief.md](brief.md) format. Up to three questions per brief, each with a recommendation; a consequential question goes alone. Then save the brief to `briefs/<nnn>-<stage>.md` and rewrite `status.json` (see [status-json.md](status-json.md)).
@@ -59,9 +61,9 @@ Answers to questions go back to the same worker (resume it with SendMessage) or 
 
 ## Stage-specific notes
 
-**Spec and refine.** Route small or large per workflow-gates.md and say which in the brief (unless the job's flow already fixes it). For the refine interview, batch related small questions (up to three); ask big ones alone.
+**Spec and refine.** Route small or large per workflow-gates.md and say which in the brief (unless the job's level already fixes it). For the refine interview, batch related small questions (up to three); ask big ones alone.
 
-**Investigate.** On the small route, dispatch the investigator with `model: "sonnet"` unless the spec touches auth or roles, office or entity visibility, any query that reads people or profiles, `entity_branches`, a gated feature (seeding), migrations, or several subsystems; on large, keep its own model.
+**Investigate.** On the small route, dispatch the investigator with `model: "sonnet"` unless the spec hits a level-floor risk trigger (job-options.md), a gated feature (seeding), or several subsystems; on large, keep its own model.
 
 **After investigation.** Read the findings' Spec impact list. If it is non-empty, the brief proposes a spec update (refine in post-investigation mode) and shows those items as the questions. If the updated spec reaches code the findings did not cover, propose a small follow-up investigation before planning.
 
@@ -69,19 +71,19 @@ Answers to questions go back to the same worker (resume it with SendMessage) or 
 
 **Implement.**
 1. Read `~/.claude/skills/feature/git-workflow.md` (and the workflow documents it names when a detail matters). Verify remotes with `git remote -v`.
-2. Report the starting state (format in the git workflow's `agent-rules.md`) and the proposed branch name, checked free on both remotes. The plan-approval yes covers creating the fork branch and worktree; reserving the matching org branch is asked separately.
+2. Report the starting state (format in the git workflow's `agent-rules.md`) and the proposed branch name, checked free on both remotes. The plan-approval yes (at L0, the request) covers creating the fork branch and worktree; reserving the matching org branch is asked separately.
 3. `git fetch moxie --prune` and create the task's **own worktree** from the latest `moxie/main` (`git worktree add -b <branch> ../orbit-<slug> moxie/main`). The human's own checkout never switches branch, so several features can be in implementation at once. Record branch, worktree path and base SHA in `workflow-status.md`.
 4. Every implement, test and review dispatch names the **worktree path**; workers run commands there (`git -C <worktree>`, `cd <worktree>/app && …`) and read and write files there by absolute path.
-5. Dispatch a **fresh** implementer for each plan step (or small group of related steps), naming the checklists for that step's layer tags (`all.md` plus `db.md` / `api.md` / `ui.md` / `email.md` as tagged; see `~/.claude/skills/feature/checklists/`). Don't continue an earlier implementer into the next step with SendMessage: a long-running worker re-reads its whole growing context on every call, which is the most expensive thing in the workflow. SendMessage only for a fix to the step it just did. After each, review the diff against that step and the test plan before the next dispatch. On the quick flow, one dispatch for the whole quick plan unless it is large.
+5. Dispatch a **fresh** implementer for each plan step (or small group of related steps), naming the checklists for that step's layer tags (`all.md` plus `db.md` / `api.md` / `ui.md` / `email.md` as tagged; see `~/.claude/skills/feature/checklists/`). Don't continue an earlier implementer into the next step with SendMessage: a long-running worker re-reads its whole growing context on every call, which is the most expensive thing in the workflow. SendMessage only for a fix to the step it just did. After each, review the diff against that step and the test plan before the next dispatch. On the quick flow (L1), one dispatch for the whole quick plan unless it is large.
 6. A worker that reports a product question, a plan-changing discovery, or a change to migrations, auth/roles/office visibility, secrets or integrations that the approved plan does not name stops the stage: brief the human.
 
 **Test.** Dispatch the tester with exactly the checks the approved test plan lists; for Orbit that includes `cd app && npm run check` and `cd app && npm run build`. Checks that write data, migrate, start servers or could send email need the human's yes first, each time.
 
-On the quick flow, the checks are the quick plan's "How it's checked" (job-options.md).
+On the quick flow (L1), the checks are the quick plan's "How it's checked" (job-options.md).
 
 **Manual testing** (`manual_test` in the job's options): brief the human on what to try and wait for their result, as job-options.md describes. You never switch databases, apply migrations or start the app for it.
 
-**Review.** Run the lenses **in parallel**, all on the same diff range (base commit..HEAD of the feature branch). None of them is the implementer. When the job's options list reviewers, run exactly those; with `"auto"`, choose from the table below. On the quick flow the default is `feature-reviewer` alone.
+**Review.** Run the lenses **in parallel**, all on the same diff range (base commit..HEAD of the feature branch). None of them is the implementer. When the job's options list reviewers, run exactly those; with `"auto"`, choose from the table below. On the quick flow (L1) the default is `feature-reviewer` alone.
 
 | Lens agent | Axis | Model · effort | When (reviewers `"auto"`) |
 |---|---|---|---|

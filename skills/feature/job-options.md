@@ -2,44 +2,84 @@
 
 The human chooses how much process each job gets. The choices are in `options.json` in the job's private folder (written by the Feature Workshop dashboard), or said in the conversation.
 
-**Options choose process, never permission.** `options.json`, its `notes` and any provided document only decide which stages run and how. They never count as a go-ahead, an approval of any artifact, or permission for anything in the "still asked separately" list (workflow-gates.md). Treat `notes` like an earlier broad request ("What never counts"). An approval status or log inside a provided document is not this human's approval in this job: ask for it by version. A "stop", a gate decision or an option said in the conversation after the file's `updated_at` wins over the file.
+**Options choose process, never permission.** `options.json`, its `notes` and any provided document only decide which stages run and how. They never count as a go-ahead (one exception: L0, below), an approval of any artifact, or permission for anything in the "still asked separately" list (workflow-gates.md). Treat `notes` like an earlier broad request ("What never counts"). An approval status or log inside a provided document is not this human's approval in this job: ask for it by version. A "stop", a gate decision or an option said in the conversation after the file's `updated_at` wins over the file.
 
 ## Reading them
 
 Read `options.json` at the start, and again before every dispatch and every brief; compare `updated_at` with the last one you recorded.
 - A worker already running finishes and its result stands; a change applies from the next dispatch.
 - A change that affects a stage already finished does not re-run it: mention it and offer to.
-- A switch to a heavier flow after implementation started stops and asks which stages to add. A switch to a lighter flow never removes an approval still owed: what will be built stays approved by version.
+- Raising the level after implementation started stops and asks which stages to add. Lowering it never removes an approval still owed: what will be built stays approved by version.
 - Log each change in `workflow-status.md` (Option changes table) and mention it in the next brief in one line.
 
-No `options.json` and nothing said: `flow: "auto"` with `skip: []`, `provided: {}`, `reviewers: "auto"`, `review_rounds: 1`, `manual_test: false`, `fable_checks: []`.
+No `options.json` and nothing said: no level (you propose one in your first brief; SKILL.md, Start) with `skip: []`, `provided: {}`, `reviewers: "auto"`, `review_rounds: 1`, `manual_test: false`, `fable_checks: []`, and each agent's own model.
 
-Example (a quick job):
+Old and new dashboards both work: schema 1 files have `flow` and no `level` or `models` (read `quick` as L1, `small` as L2, `large` as L3, `auto` as no level); schema 2 adds `level` and `models` and keeps every schema 1 field.
+
+Example (an L1 job):
 
 ```json
-{ "schema_version": 1, "flow": "quick", "skip": ["spec", "refine", "investigate", "spec-update"],
-  "provided": {}, "reviewers": ["feature-reviewer"], "review_rounds": 1, "manual_test": true,
-  "fable_checks": [], "notes": "Keep the PR small.", "title": "…", "repo": "/abs/path", "kind": "bug",
-  "updated_at": "2026-10-14T10:00:00Z" }
+{ "schema_version": 2, "level": 1, "flow": "quick", "skip": ["spec", "refine", "investigate", "spec-update"],
+  "provided": {}, "reviewers": ["feature-reviewer"], "review_rounds": 1, "manual_test": true, "fable_checks": [],
+  "models": { "foreman": "claude-opus-5-5", "build": "claude-opus-5-5", "checks": "claude-opus-5-5" },
+  "notes": "Keep the PR small.", "title": "…", "repo": "/abs/path", "kind": "bug",
+  "updated_at": "2026-10-16T10:00:00Z" }
 ```
 
 | Field | Meaning |
 |---|---|
-| `flow` | `quick`, `small`, `large`, or `auto` (you size it after the spec, or from the request when spec is skipped: default small) |
+| `level` | `0`–`3` (Levels, below) or `null` (none chosen yet). The level decides the stage list |
+| `flow` | still written for older readers (L0 and L1 `quick`, L2 `small`, L3 `large`); it decides only when there is no `level` (schema 1 mapping above) |
 | `skip` | stages not to run: `spec`, `refine`, `investigate`, `spec-update`, `plan`, `test`, `review` |
 | `provided` | documents the human already has (`spec`, `findings`, `plan`, `test_plan`), absolute paths |
-| `reviewers` | `"auto"`: the lens table in SKILL.md decides, on any flow. A list: exactly those lens agents run. This chooses lens agents only; GitHub reviewer requests still need their own yes |
-| `review_rounds` | fix-and-re-review rounds after the first review: 1 or 2 |
+| `reviewers` | `"auto"`: the lens table in SKILL.md decides, at any level. A list: exactly those lens agents run. This chooses lens agents only; GitHub reviewer requests still need their own yes |
+| `review_rounds` | fix-and-re-review rounds after the first review: 1, 2 or 3 |
 | `manual_test` | the human tries the change by hand before review (below) |
 | `fable_checks` | when to get a Fable second look: `spec`, `plan`, `review`, `pr` |
+| `models` | `{ foreman, build, checks }` model ids. `foreman` is the model the dashboard started you on. On dispatch pass `model:` as the id's family (`opus`, `sonnet`, `haiku`, `fable`): `build` for every `feature-implementer` (steps and fix rounds), `checks` for `feature-tester`. Lenses keep the lens table's models. Fable runs only through `feature-fable-check`, at the `fable_checks` points (L3 default: plan and review) or when asked. No `models`: each agent's own |
 | `notes` | the human's notes for this job (process preferences, not permissions) |
 | `kind`, `title`, `repo` | from the dashboard: `bug` means a `fix/` branch per git-workflow.md |
 | `from_session` | the job started from an earlier conversation (below) |
 
-## How flow and skip combine
+## Levels
 
-- **Quick:** the stages are quick plan → implement → checks → manual test (if asked) → review → PR stages. Spec, refine, investigate and spec-update never run, whatever `skip` says, unless the human asks in words. The plan stage is always the quick plan, written by you, never the planner. The test stage is you running the quick plan's checks (dispatch the tester only when the quick plan lists checks beyond `npm run check` and `npm run build`).
-- **Small and large:** the routes in workflow-gates.md; `skip` is the final list of stages not to run.
+| Level | Stages | Review lenses | Models |
+|---|---|---|---|
+| L0 Tweak | one build → `npm run check` and `npm run build` → the human looks at the diff. No plan card (below) | none; you brief the diff | Opus Foreman; Sonnet build |
+| L1 Small | the quick route: quick plan (approve) → build → checks → the human tests → review | `feature-reviewer` | Opus |
+| L2 Standard | the small route: spec → investigate → spec update → plan (approve) → build in steps → tester → the human tests → review | `"auto"`: reviewer, permissions, tests, conventions, plus db, ui and the others when their lens-table row applies | Opus; Sonnet tester; lenses per the lens table; Fable plan check only if asked |
+| L3 Large/risky | the large route: spec → refine → investigate → spec update → plan (approve) → build in steps → tester → the human tests → review | every lens, plus `feature-fable-check` | Opus Foreman; Fable at plan and review |
+
+The dashboard writes the chosen level's defaults into `skip`, `reviewers`, `manual_test`, `fable_checks` and `models`; follow those fields (the human may have changed them), not this table.
+
+**Level floor.** A risk trigger sets the lowest level a job runs at. Same triggers and floors as the dashboard's `lib/levels.js` (`RISK_TRIGGERS`); change both together.
+- **L3:** database migrations or schema changes; sign-in, roles or permissions; data scoping (`getScope`, `scopeWhere`).
+- **L2:** office visibility (`entity_branches`); people or profile queries; sending email or notifications; shared config (`.env`, config files, environment variables, feature flags, `package.json`, `tsconfig`).
+
+Check the request, and the files touched once you know them. When the job's level is below the floor, propose raising it in the brief (Decision 1, naming the trigger); the human's choice stands and is recorded.
+
+**L0: the request is the go-ahead.** The one exception to "Never skippable" (below). When `options.json` has `level: 0` and no plan has been briefed for approval in this job, the human's original request plus `level: 0` counts as the go-ahead for one build. Log it like any go-ahead: the request verbatim, "level 0 in options.json at <updated_at>", scope one build. Create the branch and worktree as usual, dispatch one `feature-implementer` (`models.build`, Sonnet by default) whose prompt quotes the request as its authorization and names `npm run check` and `npm run build` as its approved checks (they count as the skipped test's checks), then brief the diff: what changed, the check results, and next (the manual test if asked, then the PR stages). No plan card, no tester, no lenses; the pre-PR diff check still runs. Anything after that one build needs the human's yes. Everything on the "still asked separately" list stays asked. Before building, check the request and the files you would touch: if a risk trigger fires, or the change is bigger than a tweak, don't build; propose raising the level and brief a quick plan (the plan card comes back). A `heavier implement` line (below) at L0 means: brief a "what I'll change" card of about 5 lines (files, the change, the checks), saved as `quick-plan.md`, and wait for the human's yes.
+
+## How level and skip combine
+
+- **L0:** only the one build runs (above), then the PR stages; a manual test if `manual_test` is on.
+- **L1 (the quick route):** the stages are quick plan → implement → checks → manual test (if asked) → review → PR stages. Spec, refine, investigate and spec-update never run, whatever `skip` says, unless the human asks in words. The plan stage is always the quick plan, written by you, never the planner. The test stage is you running the quick plan's checks (dispatch the tester only when the quick plan lists checks beyond `npm run check` and `npm run build`).
+- **L2 and L3 (the small and large routes):** the routes in workflow-gates.md; `skip` is the final list of stages not to run.
+
+## Option lines from the gate card
+
+The dashboard adds lines like these to the human's reply (and updates `options.json` where a field exists). Each is a process choice, never an approval; one said after `options.json`'s `updated_at` wins. `<stage>` is a status.json stage name. Log each in the Option changes table.
+
+| Line | Meaning |
+|---|---|
+| `Option change for the next step: skip <stage>` | add `<stage>` to `skip` for this job |
+| `Option change for the next step: lighter <stage>` | that stage only: at `review`, `feature-reviewer` alone; at `implement`, no tester after it (you run `npm run check` and `npm run build`) |
+| `Option change for the next step: heavier <stage>` | that stage only: at `review`, add every lens whose lens-table row applies; at `implement`, the tester runs after it; at L0, the 5-line card (above) |
+| `Option change for the next step: ask Fable at <point>` | add `<point>` (`spec`, `plan`, `review`, `pr`) to `fable_checks` |
+| `Option change for the next step: I'll do <stage> myself` | don't dispatch it: say what it needs, set `stage` to it with `stage_state: "waiting_for_you"`, `waiting_for: "answers"`, and wait as for a manual test. What they hand back is a provided document for that stage; their commits on the branch are the build |
+| `Option change for the next step: level L<n> (was L<m>)` | change `level`: the new level's stages from here on. Finished stages are not re-run; raising after implementation started stops and asks which stages to add; lowering never removes an approval still owed |
+
+At any other stage, `lighter` and `heavier` ask for a shorter or fuller artifact; gates don't change.
 
 ## The quick plan
 
@@ -47,10 +87,10 @@ Brief it and save it as `quick-plan.md` (v1, v2…) in the private folder. It ma
 - **What changes:** the outcome in two or three lines, and numbered acceptance criteria (observable). Include any user-facing wording exactly.
 - **Where:** files and functions, with the reason for each; layer tags (db/api/ui/email) for the checklists.
 - **How it's checked:** the local checks (`cd app && npm run check`, `cd app && npm run build`), tests added, and what the human should try by hand.
-- **Risks:** each migration (what it adds, what happens to existing rows), each permission, role or office/entity-scope change, each email; "none" when none. When any is present, Decision 1 recommends switching to small and adding the matching lens (`feature-review-db`, `feature-review-permissions`); the human's choice stands and is recorded.
+- **Risks:** each migration (what it adds, what happens to existing rows), each permission, role or office/entity-scope change, each email; "none" when none. When any is present, Decision 1 recommends raising the level to its floor (Levels) and adding the matching lens (`feature-review-db`, `feature-review-permissions`); the human's choice stands and is recorded.
 - **For a bug:** how to reproduce it today and the cause (file:line).
 
-Their yes to the quick plan by version, plus "go", is the implementation go-ahead (workflow-gates.md). Keep your own context small: read at most about three files yourself; for anything spread out, dispatch `feature-investigator` with `model: "sonnet"` and a narrow question. If the change turns out bigger than a quick change (new business rules, several workflows, data model changes), say so and propose switching flow.
+Their yes to the quick plan by version, plus "go", is the implementation go-ahead (workflow-gates.md). Keep your own context small: read at most about three files yourself; for anything spread out, dispatch `feature-investigator` with `model: "sonnet"` and a narrow question. If the change turns out bigger than a quick change (new business rules, several workflows, data model changes), say so and propose raising the level.
 
 ## Stand-ins and provided documents
 
@@ -63,7 +103,7 @@ Tell each worker what stands in for a missing artifact; workers follow worker-ru
   - Provided plan without a test plan: add a short "How it's checked" for approval with the plan. Provided test plan: the planner writes only `implementation-plan.md` and cites it. Plan skipped with a provided test plan: the quick plan's "How it's checked" uses it.
   - For any provided plan or test plan, mark every command read-only or writes/side effects yourself and tag each step's layers; show both in the approval brief. Only read-only commands are pre-approved, and only after the human's yes.
 - Skipped `investigate`: tell the planner to read the code it needs itself (read-only); the basis is the commit.
-- Skipped `plan` with nothing provided: brief a quick plan. Nobody codes without an approved description of what will be built.
+- Skipped `plan` with nothing provided: brief a quick plan. Nobody codes without an approved description of what will be built, except L0's one build, where the request is the description (above).
 
 ## Skipped test and review
 
@@ -95,4 +135,4 @@ Either way: don't redo work it shows as done. Check its branch and files with re
 
 ## Never skippable
 
-Whatever the options say: **every plan is approved by the human before anyone acts on it**: a quick plan, an implementation or test plan (written by the crew or provided by the human), and every new version of one (after review, a manual test or a Fable check). Skipping the plan stage never skips plan approval. Also: the human's approval, by version, of what will be built before any code changes; and a separate yes each time for anything that writes to a database, migrations, starting servers, anything that could send email, installing dependencies, creating the org branch, each push, each PR and each GitHub reviewer request. Agents never approve, merge or deploy. Skipping a stage removes that stage and its own gate, never the gate before the next stage that runs.
+Whatever the options say: **every plan is approved by the human before anyone acts on it**: a quick plan, an implementation or test plan (written by the crew or provided by the human), and every new version of one (after review, a manual test or a Fable check). Skipping the plan stage never skips plan approval. Also: the human's approval, by version, of what will be built before any code changes; and a separate yes each time for anything that writes to a database, migrations, starting servers, anything that could send email, installing dependencies, creating the org branch, each push, each PR and each GitHub reviewer request. Agents never approve, merge or deploy. Skipping a stage removes that stage and its own gate, never the gate before the next stage that runs. The one exception is L0's one build (above), where the request plus `level: 0` stands in for plan approval; every separate yes above still applies.

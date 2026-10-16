@@ -65,7 +65,7 @@ Inside a `/feature` job it also writes `wireframes.html` (opens straight from di
 
 1. **Spec.** The Foreman drafts a spec and asks at most three questions.
 2. **Route.** Each job gets a level of process, from a gate-free tweak to a full panel review. The Foreman suggests one from the request and the code it touches; you confirm or change it. Risky changes (migrations, auth, scoping, email) always get more review.
-3. **Investigate and plan.** Read-only findings, then a plan you approve before any code is written.
+3. **Investigate and plan.** Read-only findings, then a plan you approve before any code is written (a tweak at L0 builds straight from your request).
 4. **Build.** A fresh implementer per plan step, one local commit per step, in its own git worktree.
 5. **Test and review.** The test plan runs; review lenses report; fixes get one round by default.
 6. **PRs.** Pushed to your fork only. Pull requests to the organisation repository are opened only when you say so.
@@ -76,7 +76,7 @@ Every job keeps its own private folder under `~/.claude/feature-work/<slug>/` wi
 
 - `skills/feature/git-workflow.md` and `skills/feature-spec/workflow-gates.md` describe one team's remotes, branch naming and PR stages. Edit them for yours.
 - `skills/feature/checklists/` holds the review checklists per area (API, database, email, UI). Add your own.
-- Model choices live in each agent's front matter.
+- Model choices live in each agent's front matter; a job's options can set the build and test models per job.
 
 ## Credits and license
 

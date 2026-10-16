@@ -7,8 +7,9 @@ Shared reference for the feature workflow: the stage skills `/feature-spec`, `/f
 - **Small enhancement:** spec → *gate* → investigate → *gate* → spec update (when findings affect the spec) → *gate* → plan → *gate* → implement → *gate* → test → *gate* → independent review → *gate* → PR #1 → PR #2 → staging QA → PR #3 release.
 - **Large feature:** the same, with refine → *gate* between spec and investigate.
 - **Quick change** (only when the human chooses it, in the job's options or in words): quick plan → *gate* → implement + local checks → the human's own manual test, when they asked for one (waits for their result) → review with the chosen reviewers (+ fix rounds within the quick plan) → *gate* → PR #1 → PR #2 → staging QA → PR #3. No spec, refine, investigation or plan documents; the quick plan (outcome, numbered acceptance criteria, files, checks, risks) is approved by version before coding. See `~/.claude/skills/feature/job-options.md`.
+- **Levels** (the job's options): L1 runs the quick route, L2 the small, L3 the large. L0 (a tweak) is one build with no gate before it, the one exception to the approvals below; see job-options.md.
 
-**The human's options.** The human can skip stages, hand over documents they already have (a spec, findings, a plan) to use instead of a stage's output, choose the review lenses, and ask for manual testing or Fable second looks, per job (`options.json` in the private folder; rules in `~/.claude/skills/feature/job-options.md`). Options choose process, never permission: they are never a go-ahead or an approval. Skipping a stage removes that stage and its own gate, never the gate before the next stage that runs. Never skippable: the human's approval of every plan (quick, written or provided, and every new version) before anyone acts on it, approval of what will be built before coding, and everything under "Still asked separately" below.
+**The human's options.** The human can skip stages, hand over documents they already have (a spec, findings, a plan) to use instead of a stage's output, choose the review lenses, and ask for manual testing or Fable second looks, per job (`options.json` in the private folder; rules in `~/.claude/skills/feature/job-options.md`). Options choose process, never permission: they are never a go-ahead or an approval. Skipping a stage removes that stage and its own gate, never the gate before the next stage that runs. Never skippable: the human's approval of every plan (quick, written or provided, and every new version) before anyone acts on it, approval of what will be built before coding (except L0, see job-options.md), and everything under "Still asked separately" below.
 
 After review, the three PR stages follow the git workflow (`~/.claude/skills/feature/git-workflow.md`): **PR #1** fork → same-named org branch (you self-review and merge it yourself), **PR #2** org branch → `staging` (Raj's GitHub approval), **PR #3** `staging` → `main` (release owner). Pushing, opening each PR and requesting reviewers each need their own go-ahead; agents never approve, merge or deploy. No stage implies permission for a later one.
 
@@ -46,7 +47,7 @@ What counts as authorization:
 What never counts:
 
 - Finishing a stage, saving an artifact, or a readiness label such as COMPLETE.
-- Silence, elapsed time, or an earlier broad request ("build Announcements end to end").
+- Silence, elapsed time, or an earlier broad request ("build Announcements end to end"). (At L0 the request is the build's go-ahead: job-options.md.)
 - Approval of an earlier stage, or approval of a different artifact version.
 
 ### Checking the gate at the start of a stage
@@ -64,11 +65,11 @@ When there is no explicit go-ahead (a bare invocation) and a check fails, or the
 
 - Investigation may run on a DRAFT or IN REVIEW spec when authorized; it discovers facts only. The spec keeps its true status.
 - Planning on a spec that is not APPROVED, or with Open questions that block parts of V1, needs the human to say explicitly that **provisional planning** on that version is authorized and for what scope. Label conditional and blocked sections in the plan.
-- Coding needs human approval of the current spec, the proposed solution and the test plan, by version. One explicit yes naming those versions is enough. On the quick route, or when the human skipped the spec or plan, the approved quick plan (or `requirements.md` plus the plan) by version stands in; it must state numbered acceptance criteria.
+- Coding needs human approval of the current spec, the proposed solution and the test plan, by version. One explicit yes naming those versions is enough. On the quick route, or when the human skipped the spec or plan, the approved quick plan (or `requirements.md` plus the plan) by version stands in; it must state numbered acceptance criteria. Except L0, see job-options.md.
 
 ### What the implementation go-ahead covers
 
-Once the human approves spec, implementation plan and test plan by version (or the quick plan, on the quick route) and says to implement:
+Once the human approves spec, implementation plan and test plan by version (or the quick plan, on the quick route) and says to implement, or at L0 by the request (job-options.md):
 
 - creating the feature branch and its dedicated worktree from the latest `moxie/main`, per the git workflow file (`~/.claude/skills/feature/git-workflow.md`); the matching org branch is still a separate yes;
 - code and test changes the approved plan describes;
@@ -120,8 +121,8 @@ Every stage creates or updates it. Record only what actually happened; write "no
 # <Feature name>: workflow status
 
 **Feature slug:** <slug>
-**Route:** QUICK / SMALL / LARGE — <one-line reason>
-**Options:** <flow; skipped stages; provided documents; reviewers; manual test; Fable checks — or "defaults">
+**Route:** QUICK (L0, L1) / SMALL (L2) / LARGE (L3) — <one-line reason>
+**Options:** <level; skipped stages; provided documents; reviewers; manual test; Fable checks — or "defaults">
 **Spec:** <path> · current version <x.y> · status <DRAFT / IN REVIEW / APPROVED>
 **Refinement:** NOT REQUIRED / PROPOSED / COMPLETE / BLOCKED — <reason or question IDs>
 **Repository:** <path> · branch <name> · commit <sha> · working tree <clean / dirty> (from investigation)
@@ -164,6 +165,6 @@ Apply only when the repository, its instructions or the human identify the proje
 - Git, branches and PRs follow the workflow in `~/Projects/moxie-portal-git-workflow/`, summarized in `~/.claude/skills/feature/git-workflow.md`: every branch starts from the latest `moxie/main` (never staging), same branch name in fork and org, a dedicated worktree per task, and the three PR stages. Report any conflict with a spec, brief or repo doc for a human decision.
 - Plan a safe test environment with the correct schema and representative data, and make sure test email cannot reach real recipients.
 - Detailed engineering plans and review records stay private to the tech team, never in reporter-accessible tickets, attachments, search or emails. Reporters keep access to their own submissions.
-- Human approval of the spec, proposed solution and test plan comes before coding. On the quick route (the human's choice), the approved quick plan stands in for all three. Each PR stage needs its own go-ahead: PR #1 you self-review and merge yourself; PR #2 needs Raj's submitted GitHub approval; PR #3 is the release owner's. Agents never approve, merge or deploy.
+- Human approval of the spec, proposed solution and test plan comes before coding. On the quick route (the human's choice), the approved quick plan stands in for all three. Except L0, see job-options.md. Each PR stage needs its own go-ahead: PR #1 you self-review and merge yourself; PR #2 needs Raj's submitted GitHub approval; PR #3 is the release owner's. Agents never approve, merge or deploy.
 - Gates apply between spec, refinement, investigation and planning (Orbit workflow decisions, 2026-10-12), for the stages that run; stages the human skips have none.
 - Keep process overhead from blocking product or tracker improvements: stay proportional.

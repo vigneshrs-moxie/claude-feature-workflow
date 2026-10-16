@@ -12,11 +12,11 @@ Check the artifact **on disk**, not the worker's summary of it.
 - **Versions:** every artifact names the versions it is based on, and those match what is on disk.
 - **Gates:** the worker stopped where it should and did not start the next stage.
 - **Proportional:** a small enhancement did not get a large-feature treatment.
-- **Options followed:** the stages, reviewers and checks match the job's `options.json` at the time.
+- **Options followed:** the level, stages, reviewers, checks and models match the job's `options.json` at the time.
 
 ## Brief format
 
-Aim for about 12 lines; a brief asking to approve what will be built (a quick plan or a plan) may run to about 25, so the human can decide without opening a file. Plain language. No restating the artifact. Write the brief file and `status.json` with one Write each (never with scripts or several edits).
+Aim for about 12 lines; a brief asking to approve what will be built (a quick plan or a plan; at L0 there is none, and the first brief shows the diff) may run to about 25, so the human can decide without opening a file. Plain language. No restating the artifact. Write the brief file and `status.json` with one Write each (never with scripts or several edits).
 
 ```
 **<Feature> · <stage> done** · spec v<x> (<status>) · <other artifact> v<n>
