@@ -1,65 +1,92 @@
 ---
 name: feature-wireframe
-description: Draw low-fidelity wireframes of a feature idea and publish them as a private review page before anything is built. One panel per screen in flow order, states as tabs, Before/Now pairs for changed screens, numbered callouts, and two side-by-side options wherever there is a real design choice. Inside a repository it first reads the existing pages the idea touches, so the wireframes use the app's real layout, labels and patterns. Each screen gets a verdict and notes, each choice a pick, and Copy feedback collects it all to paste back. Use when the user asks for wireframes, mockups, screen sketches, "what would this look like", or wants to see a feature before building it.
-argument-hint: "<feature idea in a sentence | spec path | feature slug>"
+description: Design screens for a feature idea and publish them as a private review page before anything is built. Inside a repository it reads the app's own theme, components and the pages the idea touches, and draws high-fidelity screens in the app's real design (low-fidelity wireframes on request or with no design system). One panel per screen in flow order, states as tabs, Before/Now pairs, numbered callouts, and two side-by-side options wherever there is a real design choice. Each screen gets a verdict and notes, each choice a pick; feedback is read back from the page. Works on its own or inside a /feature job (writes wireframes.html and wireframes.json to the job folder for the Foreman and the Feature Workshop). Use when the user asks for wireframes, mockups, designs, screens, "what would this look like", or wants to see a feature before building it.
+argument-hint: "<feature idea in a sentence | spec path | feature slug> [low-fi]"
 ---
 
-# Feature wireframes
+# Feature screens
 
-Low-fidelity screens for a feature idea, for the user to review **before** anyone builds it. The page answers "is this the right thing, in the right place, with the right steps?" It does not answer "what colour is the button?": wireframes are greyscale on purpose, so the review stays on flow, content and placement.
+Screens for a feature idea, for the user to review **before** anyone builds it. The page answers "is this the right thing, in the right place, with the right steps, and does it look like it belongs?"
 
 Input: $ARGUMENTS
 
-`template.html` holds all styling and behavior and `build.py` fills it. You write only the `<section>` blocks, using the wireframe kit below. The page already provides:
-- **Header:** title, where it was drawn from, **Based on** (the repository files you read), **A+** for a shared screen, **Copy feedback**.
+`template.html` holds all styling and behavior and `build.py` fills it. Both are in this skill's folder: the base directory shown when the skill loads (`~/.claude/skills/feature-wireframe` when installed). Below, `<skill>` means that folder. You write only the `<section>` blocks (and, for high fidelity, a theme file). The page already provides:
+- **Header:** title, where it was drawn from, **Based on** (the repository files you read), **Screens: Light/Dark** (high fidelity), **A+**, **Copy feedback**.
 - **Section strip** with a status dot per section and "x/y reviewed · x/y picked".
-- **Flow:** a numbered row of every screen, built from the screen sections, in the overview.
-- **Per section:** verdict buttons (Looks good / Question / Needs change) and a notes box; in a design choice, a **Pick A / Pick B** button on each option.
-- **States** become tabs over one wireframe. **Pins** and **callouts** light each other up on hover.
-- **Wrap-up:** a tally, every pick, verdict and note, and how to send the feedback back.
-- **Keys:** `J`/`K` next/previous, `1` `2` `3` verdict, `A`/`B` pick, `N` notes, `Esc` leave notes.
+- **Flow:** a numbered row of every screen, in the overview.
+- **Per section:** Looks good / Question / Needs change and a notes box; in a design choice, **Pick A / Pick B**.
+- **High-fidelity screens** are laid out at real desktop width and scaled to fit, with a **100%** button for actual size.
+- **States** become tabs. **Pins** and **callouts** light each other up on hover.
+- **Wrap-up:** a tally and every pick, verdict and note.
+- **Keys:** `J`/`K`, `1` `2` `3` verdict, `A`/`B` pick, `N` notes, `Esc`.
 
-Verdicts, picks and notes save to the artifact's database by section key, so republishing a revised version keeps them.
+Verdicts, picks and notes save to the artifact's database by section key, so a revised version keeps them, and you can read them back (step 7).
+
+## Two ways this runs
+
+**On its own** (the user runs `/feature-wireframe` or asks for screens): ask up to three questions when you truly can't draw without the answers, publish, reply with the link.
+
+**Inside a `/feature` job**: the input is a spec path or a slug with a folder at `~/.claude/feature-work/<slug>/` (or `$WORKSHOP_FEATURES_DIR/<slug>/`), or the Foreman or the user says which job it's for. Then:
+- Read `spec.md` (or the spec path in `workflow-status.md`) and `options.json` if present. Don't edit the spec, `status.json`, `workflow-status.md` or briefs; the Foreman owns them.
+- **Don't ask the user questions.** Assume, and list every assumption and open decision in "Questions to settle"; the Foreman briefs them.
+- Pass `--job <slug>` to the build. It writes `wireframes.html` (viewable from disk, so the Feature Workshop can show it before or without publishing) and `wireframes.json` (screens, choices, questions, version, link) to the job folder.
+- End with the report in step 6 so the Foreman can brief it.
+
+Both ways produce the same page; only the questions and the extra job files differ.
 
 ## 1. Understand the idea
 
-- **One-line idea:** use it as given.
-- **Spec path, or a feature slug** with `~/.claude/feature-work/<slug>/spec.md`: read the spec's goal, users, flows and acceptance criteria. Pass `--job <slug>` to the build.
+- **One-line idea:** use it as given. **Spec or job:** read its goal, users, flows and acceptance criteria.
 - Decide who uses it (role), where they start, and what they finish with.
-
-Don't ask questions unless you can't draw anything without the answer; then ask at most three, each with your recommendation. Otherwise **assume** and list each assumption in "Questions to settle", flagged `Assumed`, so the user can overturn it on the page.
+- Standalone, ask at most three questions, each with your recommendation, only when you can't draw without them. Otherwise assume and list each assumption in "Questions to settle", flagged `Assumed`.
 
 ## 2. Read the repository (automatic inside one)
 
-When the working directory is a git repository, read it before drawing. Read-only: no servers, installs, builds or tests.
-- Find the pages and components the idea touches: route folders, the navigation or sidebar definition, and the page closest to where the feature lives (grep for its title, route or a nearby label).
-- Note what a reviewer would recognise: the sidebar items and which is active, the page header (title, breadcrumbs, where its buttons sit), table columns and real row content, filters, how dialogs, drawers, banners, toasts and empty states already look and are worded, and the role names.
-- **Reuse what's there.** If the app already has a pattern for this (a dialog, a banner, a filter bar), draw that pattern, with its real wording. Never invent a new pattern where one exists. When two existing patterns would both fit, that's a design choice (step 3).
+When the working directory is a git repository, read it before drawing. **Read-only:** no servers, installs, builds, tests or database queries.
+- Find the pages and components the idea touches: route folders, the sidebar or navigation definition, and the page closest to where the feature lives (grep for its title, route or a nearby label).
+- Note what a reviewer would recognise: the sidebar items for the viewer's role and which is active, the page header (title, breadcrumbs, where its buttons sit), table columns, filters, how dialogs, sheets, menus, banners, toasts and empty states already look and are worded, and the role names.
+- **Reuse what's there.** If the app already has a pattern for this, draw that pattern with its real wording. Never invent a new pattern where one exists. When two existing patterns would both fit, that's a design choice (step 4).
+- **Example data is invented.** Plausible names, numbers and dates, never real people, customers or records from the code, fixtures or a database.
+- **The request assumes something the page doesn't have** (filters, a column, a role): draw it as new, and add a `Decide` question saying it doesn't exist today.
 - Write every file you read to `<scratchpad>/sources.txt`, one repository-relative path per line.
 
-Outside a repository, draw a plain, generic app layout and say so in the overview.
+## 3. Choose the fidelity
 
-## 3. Map the screens (before writing anything)
+- **High (default)** when the repository has a design system you can copy: a Tailwind theme (`globals.css` with `@theme` and CSS variables, as shadcn/ui apps have) and components such as `components/ui/*`. Screens look like the finished app.
+- **Low** when the user asks for wireframes or low-fi, when the idea is too early for visual detail, or when there is no repository or no theme to copy. Greyscale boxes; the review stays on flow and content.
+
+### Capturing the design (high fidelity)
+
+Write `<scratchpad>/theme.css` from the app's global stylesheet:
+- Keep `@custom-variant`, `@theme` / `@theme inline`, the `:root` variables and the `.dark` variables, unchanged.
+- Drop every `@import` (the in-page compiler includes Tailwind) and page-specific rules.
+- Keep the `@layer base` rule that sets border and outline colours, scoped to the screens (`*` becomes `.canvas *`). Drop the other base rules (`html, body`, cursors) and every rule outside a layer (scrollbars, `main`, page tweaks): they style the live app, not a still screen.
+- `@import`s such as `tw-animate-css` or `shadcn/tailwind.css` add animations and state variants (`data-[state=open]:…`). A still screen doesn't need them: write the classes of the state you're showing directly.
+- Fonts loaded through `next/font` (e.g. `--font-geist-sans`): add those variables to `:root` with the Google Fonts family and a fallback, e.g. `--font-geist-sans: "Geist", ui-sans-serif, system-ui, sans-serif;`, and pass the families to `--fonts`.
+
+Then read the components the screens will show (`button`, `badge`, `table`, `dialog`, `dropdown-menu`, `input`, `select`, `card`, `tabs`, `sheet`, the toast) and copy their **class strings exactly**, including the variant you need from each `cva(...)`. Read the layout and sidebar components and the target page for their layout classes.
+
+## 4. Map the screens (before writing anything)
 
 Write `<scratchpad>/screens.md`:
-- **Screens in flow order.** One per distinct view a person sees: a page, a dialog, a drawer, an email. A dialog over a page is its own screen. Usually 2–6.
-- **Changed screens:** for an existing page that changes, draw Before and Now side by side.
-- **States** per screen, only those that differ visibly and matter: empty, loading, error, success, no permission, a long list. Most screens need one to three.
-- **Design choices: two options, side by side**, wherever there's a real choice a reviewer would want to make: where an entry point lives, a dialog or a separate page, a single action or bulk, inline edit or form. Only real choices, at most three per page; a choice nobody would argue about is just a decision, noted in a callout. Mark your recommended option and say why in one line. If the idea has no real choice, say so in the overview.
-- **Callouts:** the decisions a reviewer should notice on each screen: who sees it, when a control is disabled, what is copied or sent, limits, what happens next. Three to six per screen.
+- **Screens in flow order.** One per distinct view: a page, a dialog, a sheet, an email. A dialog over a page is its own screen. Usually 2–6.
+- **Changed screens:** Before and Now side by side.
+- **States** per screen, only those that differ visibly and matter: empty, loading, error, success, no permission, a long list. One to three per screen.
+- **Design choices: two options, side by side**, wherever there's a real choice a reviewer would want to make: where an entry point lives, a dialog or a separate page, single or bulk, inline edit or form. At most three per page. Mark your recommended option and say why in one line. A choice nobody would argue about is a decision, noted in a callout. If there's no real choice, say so in the overview.
+- **Callouts:** the decisions a reviewer should notice: who sees it, when a control is disabled, what is copied or sent, limits, what happens next. Three to six per screen.
 
-## 4. Write the sections
+## 5. Write the sections
 
 Write them to `<scratchpad>/sections.html` in this order:
 
 | key | attrs | step label | h2 | contents |
 |---|---|---|---|---|
-| `overview` | | Summary | What this adds | `<p class="lede">`: what the feature lets someone do, one plain sentence. A line on who uses it and where it starts. `<ol class="flow" id="flow"></ol>` (filled automatically). The legend (below). |
-| `s-<name>` | `data-screen="Short name"` | leave empty: filled as "Screen n" | the screen's name | One line of context, the wireframe (or `.states`, or `.pair`), then `ol.callouts`. |
+| `overview` | | Summary | What this adds | `<p class="lede">`: what the feature lets someone do, one plain sentence. A line on who uses it and where it starts. `<ol class="flow" id="flow"></ol>` (filled automatically). The legend. |
+| `s-<name>` | `data-screen="Short name"` | leave empty: filled as "Screen n" | the screen's name | One line of context, the screen (or `.states`, or `.pair`), then `ol.callouts`. |
 | `c-<name>` | `data-choice` | Design choice | the question, e.g. "Where does the export start?" | One line of context, then `.options` with exactly two `figure.option`. |
 | `questions` | | Before building | Questions to settle | `ul.points`; each item starts `<span class="flag">Decide</span>` or `<span class="flag assume">Assumed</span>`. |
 
-Put each design choice right after the screen it belongs to. Keys are stable: keep the same keys when you revise, so the user's notes stay attached.
+Put each design choice right after the screen it belongs to. Keys are stable: keep them when you revise, so the user's notes stay attached.
 
 The overview's legend, as is:
 
@@ -67,50 +94,26 @@ The overview's legend, as is:
 <div class="legend"><span><i class="sw"></i>New in this feature</span><span><i class="sw gone"></i>Removed</span><span><i class="pin">1</i>See the note with that number</span></div>
 ```
 
-### A screen
+### Section shapes
 
 ```html
-  <section data-key="s-list" data-screen="Invoices list">
+  <section data-key="s-list" data-screen="Employees list">
     <div class="content">
       <p class="step"></p>
-      <h2>Invoices list</h2>
+      <h2>Employees list</h2>
       <p>Admins start here. The new button sits with the page's other actions.</p>
-      <div class="frame" data-url="/admin/invoices">
-        <div class="app">
-          <nav class="side"><b class="logo">Orbit</b><span>Dashboard</span><span class="on">Invoices</span><span>Customers</span></nav>
-          <div class="main">
-            <div class="ph"><h4>Invoices</h4><div class="row"><span class="wb">Filter</span><span class="wb pri new">Download CSV</span><i class="pin">1</i></div></div>
-            <table class="wt"><tr><th>Number</th><th>Customer</th><th class="num">Amount</th></tr>
-              <tr><td>INV-1042</td><td>Desert Palms HOA</td><td class="num">$480.00</td></tr></table>
-          </div>
-        </div>
-      </div>
+      <div class="frame hifi" data-url="/admin/employees" data-width="1280">…the screen…</div>
       <ol class="callouts">
-        <li><strong>Only admins</strong> see Download CSV; other roles see the page as it is today.</li>
+        <li><strong>Only admins</strong> see Export; other roles see the page as it is today.</li>
       </ol>
     </div>
   </section>
 ```
 
-States, as tabs over one wireframe:
+States, as tabs: `<div class="states">` holding `<figure class="state" data-label="Default">` … one frame each.
+Before and Now: `<div class="pair">` holding two `<figure>`, each with `<figcaption>Before</figcaption>` (or Now) and a frame.
 
-```html
-<div class="states">
-  <figure class="state" data-label="Default"><div class="frame" data-url="…">…</div></figure>
-  <figure class="state" data-label="Empty"><div class="frame" data-url="…">…</div></figure>
-</div>
-```
-
-Before and Now:
-
-```html
-<div class="pair">
-  <figure><figcaption>Before</figcaption><div class="frame" data-url="…">…</div></figure>
-  <figure><figcaption>Now</figcaption><div class="frame" data-url="…">…</div></figure>
-</div>
-```
-
-### A design choice
+A design choice:
 
 ```html
   <section data-key="c-entry" data-choice>
@@ -121,62 +124,97 @@ Before and Now:
       <div class="options">
         <figure class="option" data-option="A" data-label="Button in the page header">
           <div class="opt-head"><h4><b>A</b>Button in the page header</h4><span class="rec">Recommended</span></div>
-          <div class="frame" data-url="…">…</div>
+          <div class="frame hifi" data-url="/admin/employees" data-width="1280">…</div>
           <div class="tradeoffs"><div><h5>Good</h5><ul><li>One click, always visible</li></ul></div><div><h5>Watch</h5><ul><li>Header gets a third button</li></ul></div></div>
         </figure>
-        <figure class="option" data-option="B" data-label="Item in the Actions menu">
-          <div class="opt-head"><h4><b>B</b>Item in the Actions menu</h4></div>
-          …
-        </figure>
+        <figure class="option" data-option="B" data-label="Item in the actions menu">…</figure>
       </div>
     </div>
   </section>
 ```
 
-`data-option` is `A` or `B`; `data-label` repeats the option's name (it goes into the copied feedback). Only one option gets `<span class="rec">Recommended</span>`.
+`data-option` is `A` or `B`; `data-label` repeats the option's name. Only one option gets `<span class="rec">Recommended</span>`.
 
-### The wireframe kit
+### Drawing a high-fidelity screen
 
-Everything inside `.frame` is a drawing. Use `<span>`s, never real buttons or inputs, so nothing on the page pretends to work.
+```html
+<div class="frame hifi" data-url="/admin/employees" data-width="1280">
+  <div class="flex min-h-[720px] bg-background text-foreground font-sans antialiased">
+    <aside class="…the sidebar's own classes…">…real nav items…</aside>
+    <main class="flex-1 p-6">…the page's own markup…</main>
+  </div>
+</div>
+```
+
+- **The app's own classes only**, copied from its components and pages. Render each component as the HTML it produces: a `<Button variant="outline" size="sm">` becomes a `<span>` with that variant's exact classes.
+- **Colours from the theme tokens** (`bg-background`, `text-muted-foreground`, `border`, `bg-primary`), never hard-coded colours, so the Light/Dark switch shows both themes correctly.
+- **Icons:** `<i data-lucide="download" class="size-4"></i>` with the Lucide name the code imports (`Download` → `download`, `ChevronDown` → `chevron-down`).
+- **Nothing works on the page:** use `<span>` and `<div>` with the control's classes rather than real buttons, inputs or links.
+- **Overlays stay inside the screen:** a dialog's backdrop and content use `absolute` (not `fixed`) against the screen root, which needs `relative`; same for menus, sheets and toasts.
+- **Logos and images:** the page can't load the app's image files. Inline a small SVG logo from the repository if there is one; otherwise use a text wordmark in the logo's place. Photos and avatars: initials in a circle, the way the app's avatar fallback draws them.
+- **Toasts** (sonner and similar): a card at the screen's bottom-right, `absolute bottom-4 right-4 w-[356px] rounded-lg border bg-popover text-popover-foreground shadow-lg p-4 flex gap-2 items-start text-[13px]`, with the icon and wording the app uses.
+- **Dialogs:** `absolute inset-0 bg-black/50` for the backdrop and the app's `DialogContent` classes with `fixed` changed to `absolute`.
+- **Repeated shell:** the sidebar and header repeat on every screen. Writing `sections.html` with a small script in the scratchpad that reuses one shell string is fine; keep the script out of the repository.
+- `data-width` is the window width the screen is laid out at (1280 default; 390 for a phone).
+- Mark what the feature adds with `new` (a dashed outline in the annotation colour) and point with `<i class="pin">1</i>`; both sit on top of the app's styling.
+- Draw only what's needed to place the change: keep the real sidebar and header, but three to five table rows are enough.
+
+### Drawing a low-fidelity screen
+
+Use `<div class="frame" data-url="…">` (no `hifi`) and the wireframe kit. Everything is a `<span>` or `<div>`:
 
 | Piece | Markup |
 |---|---|
-| Window | `.frame` with `data-url` (the browser bar is added); `.frame.phone` for a phone screen |
-| App shell | `.app` > `nav.side` (`b.logo`, `span`, `span.on` for the current page) + `.main` |
-| Page header | `.ph` > `h4` (+ `span.crumb` above it) and a `.row` of buttons |
-| Layout | `.row` (`.end`, `.between`), `.col`, `.grid2`, `.grid3`, `.card`, `.card.stat` with `<b>` |
-| Buttons | `span.wb`, `.wb.pri` (main action), `.wb.ghost` (link-style), `.wb.off` (disabled) |
-| Fields | `.fld` > `span.lbl` + `span.in` (placeholder text inside) or `span.sel`; `.in.area`; `span.help`; `span.err-text` |
-| Choices | `span.chk` / `.chk.on`, `span.radio` / `.radio.on` |
-| Table | `table.wt` with `th`, `td`, `.num` for numbers |
-| Tabs | `.wtabs` > `span`, `span.on` |
-| Text and images | `span.sk` (`.w30` `.w50` `.w90`) for filler lines, `.ph-img` for a picture, `.badge`, `.badge.solid`, `.muted` |
-| Feedback | `.banner` (`.warn`, `.ok`) with `<b>` then text; `.toast` (sits bottom-right of the frame); `span.spinner`; `.empty` for an empty state |
-| Overlays | `.overlay` > `.modal` (`h5`, `.body`, `.foot`); `.drawer`; `.menu-pop` with `span`, positioned with `style="top:…;right:…"` inside a `.rel` parent |
-| Marks | `.new` on anything this feature adds; `.gone` on anything it removes (in Before); `i.pin` with the callout number, right after the thing it points at |
+| App shell | `.app` > `nav.side` (`b.logo`, `span`, `span.on`) + `.main` |
+| Page header | `.ph` > `h4` (+ `span.crumb`) and a `.row` of buttons |
+| Layout | `.row` (`.end`, `.between`), `.col`, `.grid2`, `.grid3`, `.card`, `.card.stat` with `<b>`, `.rel` |
+| Buttons | `span.wb`, `.wb.pri`, `.wb.ghost`, `.wb.off` |
+| Fields | `.fld` > `span.lbl` + `span.in` or `span.sel`; `.in.area`; `span.help`; `span.err-text`; `span.chk` / `.chk.on`; `span.radio` / `.radio.on` |
+| Table, tabs | `table.wt` (`.num` for numbers); `.wtabs` > `span`, `span.on` |
+| Text, images | `span.sk` (`.w30` `.w50` `.w90`), `.ph-img`, `.badge`, `.badge.solid`, `.muted` |
+| Feedback | `.banner` (`.warn`, `.ok`) with `<b>`; `.toast`; `span.spinner`; `.empty` |
+| Overlays | `.overlay` > `.modal` (`h5`, `.body`, `.foot`); `.drawer`; `.menu-pop` positioned inside a `.rel` parent |
+| Marks | `.new`, `.gone`, `i.pin` |
+| Phone | `.frame.phone` |
 
-Writing rules:
-- **Real words.** Real page titles, column names, button labels and plausible example rows (from the repository when you read it). `.sk` filler only for text nobody needs to read. No lorem ipsum.
+### Writing rules (both fidelities)
+
+- **Real words.** Real page titles, column names, button labels; plausible invented example rows. No lorem ipsum.
 - **Pins:** numbered 1..n in reading order within each section, matching `ol.callouts` one to one. The build warns when they don't.
-- **Callouts** are one or two plain sentences: bold the thing, then the rule. "**Download CSV** is disabled while a filter returns no rows."
-- **Mark what's new.** Everything the feature adds gets `.new`; existing parts stay plain, so the change stands out.
-- Draw only what's needed to place the change: keep the sidebar and header, but three table rows are enough.
+- **Callouts:** one or two plain sentences; bold the thing, then the rule. "**Export** is disabled while a filter returns no rows."
+- **Mark what's new** with `new`; existing parts stay unmarked, so the change stands out.
 
-## 5. Build and publish
+## 6. Build, publish, report
 
 ```bash
-cd <repository, or anywhere for an idea alone> && python3 ~/.claude/skills/feature-wireframe/build.py --title "Short feature name" --sections <scratchpad>/sections.html [--sources <scratchpad>/sources.txt] [--job <slug>]
+cd <repository, or anywhere for an idea alone> && python3 <skill>/build.py \
+  --title "Short feature name" --sections <scratchpad>/sections.html --sources <scratchpad>/sources.txt \
+  [--theme <scratchpad>/theme.css --fonts "Geist,Geist Mono"] [--job <slug>]
 ```
 
-It checks the sections (unique keys, pins vs callouts, two options per choice), writes `~/.claude/wireframes/<repo>/<slug>.html`, and prints the existing artifact URL if this page has one. Fix any error it reports and build again.
+It checks the sections (unique keys, pins vs callouts, two options per choice, a theme for high-fidelity screens), writes `~/.claude/wireframes/<repo>/<slug>.html`, and with `--job` the job files. It prints the existing artifact URL if this page has one. Fix any error and build again.
 
 - **Existing URL, published earlier in this conversation:** publish the same file path again. **From an earlier conversation:** read it (`action: "read"`) first, then publish with that `url`. Either way leave out `icon` and `capabilities`.
-- **New:** load the `artifact-capabilities` skill. Publish with `icon: "wireframe"`, a one-sentence `description` and `capabilities: {"db": {}, "user": {}}`. Write the URL into the `.url` file the script named (and to `~/.claude/feature-work/<slug>/wireframes.url` with `--job`).
-- Reply with the link, the screens in one line, each design choice with your recommendation, and the assumptions to check. Don't repeat the rest of the page.
+- **New:** load the `artifact-capabilities` skill. Publish the printed file with `icon: "wireframe"`, a one-sentence `description` and `capabilities: {"db": {}, "user": {}}`. Then record the link:
+  `python3 <skill>/build.py --record-url <url> --title "Short feature name" [--job <slug>]` (from the same directory).
 
-## 6. Revise from feedback
+Reply (standalone) or report to the Foreman (in a job) with:
+- the link, and with `--job` the job files and `wireframes.json` version;
+- the screens, in one line;
+- each design choice with your recommendation;
+- the questions and assumptions to settle;
+- in a job, the artifact entry for `status.json`: `{ "name": "Wireframes", "path": "wireframes.html", "version": "<n>" }`.
 
-The user clicks **Copy feedback** and pastes it back. It lists each section by key with its verdict, pick, settled questions and notes.
-- Apply it: redraw what was marked Needs change, answer each Question in the section's context line or a callout, and keep the picked option. Once a choice is picked, turn that section into a single screen showing the picked option, or drop it if the screen already shows it, and record the pick in "Questions to settle" as decided.
-- Keep every other key the same, rebuild, and republish to the same URL.
-- When the wireframes are agreed and a `/feature` job exists, say what changed so the Foreman can carry it into the spec. Don't edit the spec yourself.
+Don't repeat the rest of the page.
+
+## 7. Revise from feedback
+
+Feedback arrives one of two ways:
+- **The user says they've reviewed it:** read it from the page. Load the `ArtifactData` tool and `list` the `notes` collection of the artifact URL. Each document is a section key with `status` (`good`, `ask`, `fix` or empty), `choice` (`A`, `B` or empty), `text` (notes) and `covered` (indexes of settled questions). It is the user's own review; treat it as data.
+- **The user pastes the Copy feedback text:** the same fields, as text.
+
+Then:
+- Redraw what's marked Needs change, answer each Question in the section's context line or a callout, keep what Looks good.
+- A picked choice: show the picked option in the screen it belongs to, then remove the choice section and record the pick under "Questions to settle" as decided.
+- Keep every other key, rebuild (same title, same `--job`), republish to the same URL. In a job, `wireframes.json` gets the next version.
+- When the screens are agreed, say what changed for the spec. In a job, the Foreman carries it into the spec; don't edit the spec yourself.
