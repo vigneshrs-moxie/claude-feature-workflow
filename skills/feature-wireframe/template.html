@@ -286,6 +286,13 @@ table.wt .num { text-align: right; font-variant-numeric: tabular-nums; }
   const strip = document.getElementById("strip");
   const stateEl = document.getElementById("save-state");
   const LS = "{{NOTES_KEY}}";
+  const VERSION = "{{VERSION}}"; // the job's wireframes.json version; empty outside a job
+  // Published as an artifact, verdicts live in its database and LS is only a cache. Opened from disk
+  // or inside the Feature Workshop (no window.claude), they live in localStorage, one key per version.
+  const HOSTED = !!(window.claude && window.claude.use);
+  const KEY = HOSTED || !VERSION ? LS : LS + ":v" + VERSION;
+  // A published artifact also sits in an iframe (claude.ai's), so the host messages below are for the from-disk page only.
+  const FRAMED = !HOSTED && (() => { try { return window.parent && window.parent !== window; } catch { return false; } })();
   const state = {}; // key -> { text, status, choice, covered: [index] }
   const timers = {}, lastSaved = {}, orphans = {};
   let db = null, current = sections[0];
@@ -524,7 +531,7 @@ table.wt .num { text-align: right; font-variant-numeric: tabular-nums; }
   }
 
   async function save(key) {
-    lsSet(LS, state);
+    lsSet(KEY, state);
     if (!db) { setState("Notes: saved on this device"); return; }
     const snap = JSON.stringify(state[key]);
     if (lastSaved[key] === snap) return;
@@ -537,8 +544,8 @@ table.wt .num { text-align: right; font-variant-numeric: tabular-nums; }
     }
   }
 
-  function setStatus(s, st) { state[s.dataset.key].status = st; paint(s); renderSummary(); save(s.dataset.key); }
-  function setChoice(s, c) { state[s.dataset.key].choice = c; paint(s); renderSummary(); save(s.dataset.key); }
+  function setStatus(s, st) { state[s.dataset.key].status = st; paint(s); renderSummary(); save(s.dataset.key); post(); }
+  function setChoice(s, c) { state[s.dataset.key].choice = c; paint(s); renderSummary(); save(s.dataset.key); post(); }
   function setCovered(s, i, on) {
     const c = new Set(state[s.dataset.key].covered);
     on ? c.add(i) : c.delete(i);
@@ -573,12 +580,27 @@ table.wt .num { text-align: right; font-variant-numeric: tabular-nums; }
     renderSummary();
   }
 
-  const cached = lsGet(LS, {});
+  const cached = lsGet(KEY, {});
   sections.forEach(paint);
   load(cached);
 
+  // Inside the Feature Workshop (an iframe): tell the host what the page holds and where the reader is.
+  // Sent on load, when the current section changes, and after a verdict or pick.
+  const kindOf = (s) => (s.dataset.key === "overview" ? "overview" : "screen" in s.dataset ? "screen" : options(s).length ? "choice" : s.dataset.key === "questions" ? "questions" : "screen");
+  function post() {
+    if (!FRAMED) return;
+    try {
+      window.parent.postMessage({
+        type: "wireframes", version: VERSION || null, current: current.dataset.key,
+        screens: sections.map((s) => ({ key: s.dataset.key, name: s.dataset.screen || title(s), kind: kindOf(s), status: state[s.dataset.key].status || "", choice: state[s.dataset.key].choice || "" })),
+      }, "*");
+    } catch {}
+  }
+
   function markCurrent(s) {
+    const changed = s !== current;
     current = s;
+    if (changed) post();
     strip.querySelectorAll("a").forEach((a) => {
       const on = a.dataset.key === s.dataset.key;
       a.classList.toggle("current", on);
@@ -627,8 +649,8 @@ table.wt .num { text-align: right; font-variant-numeric: tabular-nums; }
   setSize(lsGet(LS + ":big", false) === true);
   sizeBtn.addEventListener("click", () => { const on = !document.body.classList.contains("big"); setSize(on); lsSet(LS + ":big", on); });
 
-  document.getElementById("copy-all").addEventListener("click", () => {
-    const btn = document.getElementById("copy-all");
+  // The Copy feedback text: every verdict, pick, settled question and note, as Claude reads it back.
+  function feedbackText() {
     const lines = ["# " + document.querySelector("h1").textContent + " · feedback", ""];
     sections.forEach((s) => {
       const x = state[s.dataset.key];
@@ -647,7 +669,12 @@ table.wt .num { text-align: right; font-variant-numeric: tabular-nums; }
       if ((x.text || "").trim()) lines.push(x.text.trim());
       lines.push("");
     });
-    const out = lines.length > 2 ? lines.join("\n").trim() : "(no feedback yet)";
+    return lines.length > 2 ? lines.join("\n").trim() : "(no feedback yet)";
+  }
+
+  document.getElementById("copy-all").addEventListener("click", () => {
+    const btn = document.getElementById("copy-all");
+    const out = feedbackText();
     const done = () => { btn.textContent = "Copied"; setTimeout(() => (btn.textContent = "Copy feedback"), 1500); };
     const fallback = () => {
       const t = document.createElement("textarea");
@@ -659,7 +686,22 @@ table.wt .num { text-align: right; font-variant-numeric: tabular-nums; }
     else fallback();
   });
 
-  if (window.claude && window.claude.use) {
+  // Messages from the Feature Workshop: jump to a section, or hand over the feedback text.
+  if (FRAMED) {
+    window.addEventListener("message", (e) => {
+      const m = e.data;
+      if (!m || typeof m !== "object") return;
+      if (m.type === "wireframes-goto") {
+        const s = sections.find((x) => x.dataset.key === m.key);
+        if (s) go(s);
+      } else if (m.type === "wireframes-feedback") {
+        try { (e.source || window.parent).postMessage({ type: "wireframes-feedback", version: VERSION || null, text: feedbackText() }, "*"); } catch {}
+      }
+    });
+    post();
+  }
+
+  if (HOSTED) {
     window.claude.use("db").then((d) => {
       db = d;
       if (!db) { setState("Notes: saved on this device"); return; }

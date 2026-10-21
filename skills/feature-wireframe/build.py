@@ -12,7 +12,9 @@ publish) and prints that path plus the saved artifact URL, if this page has one.
 With --job <slug> (inside a /feature job), it also writes to the job's private folder
 ($WORKSHOP_FEATURES_DIR or ~/.claude/feature-work, then <slug>/), for the Foreman and the
 Feature Workshop dashboard:
-  wireframes.html  the same page as a complete document, viewable straight from disk
+  wireframes.html  the same page as a complete document, viewable straight from disk (verdicts and
+                   notes then save in the browser's localStorage under the page's title and version;
+                   inside the Workshop's iframe it posts its screens and answers goto/feedback messages)
   wireframes.json  what the page holds (screens, choices, questions), its version and URL
 After publishing, record the link (same --slug or --title, and --job if any):
   python3 build.py --record-url <artifact url> --title "Invoice CSV export" [--job <slug>]
@@ -193,12 +195,23 @@ def main():
              else "Drawn from the idea alone; no repository was read")
     meta = f"{'Screens in the app' + chr(39) + 's own design' if a.theme else 'Low-fidelity wireframes'} for review before building · {where}"
 
+    # In a job the page is versioned (wireframes.json); from disk, notes save under title + version.
+    prev, version = {}, 0
+    if job_dir:
+        jpath = os.path.join(job_dir, "wireframes.json")
+        try:
+            prev = json.load(open(jpath))
+        except (OSError, ValueError):
+            prev = {}
+        version = int(prev.get("version", 0)) + 1
+
     page = open(os.path.join(HERE, "template.html")).read()
     for k, v in {
         "{{TITLE}}": f"{a.title} wireframes",
         "{{META}}": meta,
         "{{SOURCES}}": sources_html,
         "{{NOTES_KEY}}": f"wf-{repo}-{slug}-notes",
+        "{{VERSION}}": str(version) if version else "",
         "{{SECTIONS}}": sections,
         "{{HEAD_EXTRA}}": head_extra,
         "{{FOOT_EXTRA}}": foot_extra,
@@ -219,14 +232,9 @@ def main():
                '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>'
                + page + "</body></html>")
         open(os.path.join(job_dir, "wireframes.html"), "w").write(doc)
-        jpath = os.path.join(job_dir, "wireframes.json")
-        try:
-            prev = json.load(open(jpath))
-        except (OSError, ValueError):
-            prev = {}
         job_url_file = os.path.join(job_dir, "wireframes.url")
         url = url or (open(job_url_file).read().strip() if os.path.exists(job_url_file) else None) or prev.get("url")
-        info = {"schema_version": 1, "version": int(prev.get("version", 0)) + 1, "title": a.title,
+        info = {"schema_version": 1, "version": version, "title": a.title,
                 "fidelity": "high" if a.theme else "low", "url": url, "page": "wireframes.html",
                 "source": out, "repo": top, "built_at": datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds"),
                 **summary(sections)}

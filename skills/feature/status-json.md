@@ -4,7 +4,7 @@ After **every** brief, the conductor writes two files to the feature's private f
 
 ## 1. `briefs/<nnn>-<stage>.md`
 
-The brief exactly as shown to the human, numbered from `001` and never overwritten (`briefs/001-spec.md`, `briefs/002-investigate.md`, …). Stage names as in the schema below. Answers to a brief arrive in the conversation; the conductor records them in `workflow-status.md` as usual.
+The brief exactly as shown to the human, numbered from `001` and never overwritten (`briefs/001-clarify.md`, `briefs/002-spec.md`, `briefs/003-wireframe.md`, `briefs/004-investigate.md`, …). Stage names as in the schema below. Answers to a brief arrive in the conversation; the conductor records them in `workflow-status.md` as usual.
 
 ## 2. `status.json`
 
@@ -28,7 +28,10 @@ Overwrite the whole file each time. Valid JSON, UTF-8, no comments. Use `null` f
       "id": "1",
       "text": "Fix R-2 and R-3 now?",
       "recommendation": "a",
-      "options": [ { "id": "a", "label": "Yes, small fix round" }, { "id": "b", "label": "No, leave as minors" } ]
+      "options": [
+        { "id": "a", "label": "Yes, small fix round", "consequence": "One more implementer dispatch; PR #1 waits for it" },
+        { "id": "b", "label": "No, leave as minors", "consequence": "Both go in the PR body as known minors" }
+      ]
     }
   ],
   "decided_on_your_behalf": [
@@ -37,6 +40,7 @@ Overwrite the whole file each time. Valid JSON, UTF-8, no comments. Use `null` f
   "next_proposed": "Fix round for R-2/R-3, then PR #1 (needs its own go-ahead)",
   "spec": { "path": "/abs/path/docs/plans/2026-10-12-copy-ticket-id-product-spec.md", "version": "0.4", "status": "DRAFT" },
   "artifacts": [
+    { "name": "Wireframes", "path": "wireframes.html", "version": "2", "based_on": "spec v0.2" },
     { "name": "Findings", "path": "findings.md", "version": "1", "based_on": "spec v0.3, commit 2ed7bd1" }
   ],
   "repo": { "path": "/abs/path/to/main/checkout", "base_branch": "moxie/main" },
@@ -62,11 +66,11 @@ Overwrite the whole file each time. Valid JSON, UTF-8, no comments. Use `null` f
 | `suggested_level` | `0`–`3`: the level you propose (SKILL.md, Start; job-options.md, Level floor). Keep it in later writes; change it only when you propose another level. `null` when you have made no proposal |
 | `level_reason` | one line (under 400 characters) why, from the request and the paths touched; `null` with no proposal |
 | `kind` | `feature` / `bug` (from the job's options when set) |
-| `stage` | `spec`, `refine`, `investigate`, `spec-update`, `plan`, `implement`, `test`, `review`, `pr1`, `pr2`, `staging-qa`, `pr3`. The quick plan uses `plan` (brief `briefs/<nnn>-plan.md`, artifact "Quick plan" `quick-plan.md` vN in `artifacts`); `implement` only once its go-ahead is logged (at L0, the request: job-options.md). Waiting for the human's manual test is `test` with `waiting_for: "answers"` |
+| `stage` | `clarify`, `spec`, `refine`, `wireframe`, `investigate`, `spec-update`, `plan`, `implement`, `test`, `review`, `pr1`, `pr2`, `staging-qa`, `pr3`. `clarify` is your own questions before the spec (brief `briefs/<nnn>-clarify.md`; no artifact). `wireframe` is the screens stage (brief `briefs/<nnn>-wireframe.md`, artifact "Wireframes" `wireframes.html` vN, the version from `wireframes.json`). The quick plan uses `plan` (brief `briefs/<nnn>-plan.md`, artifact "Quick plan" `quick-plan.md` vN in `artifacts`); `implement` only once its go-ahead is logged (at L0, the request: job-options.md). Waiting for the human's manual test is `test` with `waiting_for: "answers"` |
 | `stage_state` | `working` (a worker is running) · `waiting_for_you` (brief given, gate closed) · `blocked` (cannot continue: say why in `next_proposed`) · `done` (feature finished or stopped) |
 | `waiting_for` | `approval` (a go-ahead) · `answers` (questions open) · `permission` (a tool permission prompt) · `null` when not waiting |
 | `waiting_since` | when the brief was given; `null` when not waiting |
-| `questions` | the brief's "Decisions for you", max 3. `recommendation` is an option `id`; `options` may be `[]` for a free-text question |
+| `questions` | the brief's "Decisions for you", max 3 (a clarify brief: max 5). `recommendation` is an option `id`; `options` may be `[]` for a free-text question. Each option may carry `consequence`: one line, under 120 characters, on what changes if that option is picked (the dashboard shows it under the option; always filled in a clarify brief, optional elsewhere) |
 | `decided_on_your_behalf` | every product or engineering choice you made without the human's explicit answer (for example under a blanket "use your recommendations"). Keep listing it with `confirmed: false` until the human confirms it; then `true` |
 | `artifacts` | paths relative to the private folder where possible, otherwise absolute. Versions exactly as on disk |
 | `branch`, `worktree`, `base_sha` | from implementation on, as recorded in `workflow-status.md` (worktree path absolute); `null` before |

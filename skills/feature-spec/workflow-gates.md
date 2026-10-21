@@ -4,8 +4,8 @@ Shared reference for the feature workflow: the stage skills `/feature-spec`, `/f
 
 ## Routes
 
-- **Small enhancement:** spec → *gate* → investigate → *gate* → spec update (when findings affect the spec) → *gate* → plan → *gate* → implement → *gate* → test → *gate* → independent review → *gate* → PR #1 → PR #2 → staging QA → PR #3 release.
-- **Large feature:** the same, with refine → *gate* between spec and investigate.
+- **Small enhancement:** clarify → *gate* → spec → *gate* → wireframe → *gate* → investigate → *gate* → spec update (when findings affect the spec) → *gate* → plan → *gate* → implement → *gate* → test → *gate* → independent review → *gate* → PR #1 → PR #2 → staging QA → PR #3 release. Clarify is the conductor's own questions before the spec is drafted (up to five, each with options and consequences; it may ask none and go straight to the spec). Wireframe draws the spec's screens for review when the spec names a screen, page, dialog, sheet or email, and is proposed for skipping when it names none; agreed screens go into the spec as a minor version before investigation.
+- **Large feature:** the same, with refine → *gate* between spec and wireframe (the screens are drawn from the refined spec).
 - **Quick change** (only when the human chooses it, in the job's options or in words): quick plan → *gate* → implement + local checks → the human's own manual test, when they asked for one (waits for their result) → review with the chosen reviewers (+ fix rounds within the quick plan) → *gate* → PR #1 → PR #2 → staging QA → PR #3. No spec, refine, investigation or plan documents; the quick plan (outcome, numbered acceptance criteria, files, checks, risks) is approved by version before coding. See `~/.claude/skills/feature/job-options.md`.
 - **Levels** (the job's options): L1 runs the quick route, L2 the small, L3 the large. L0 (a tweak) is one build with no gate before it, the one exception to the approvals below; see job-options.md.
 

@@ -33,7 +33,7 @@ Then in Claude Code, inside the repository you work on:
 
 | Skill | What it does |
 |---|---|
-| `feature` | The Foreman. Runs spec → investigate → plan → build → test → review → PRs through the agents below, one brief per stage. Also holds the rules every worker follows, the job options (how much process a job gets), the git workflow summary, and the review checklists. |
+| `feature` | The Foreman. Runs clarify → spec → screens → investigate → plan → build → test → review → PRs through the agents below, one brief per stage. Also holds the rules every worker follows, the job options (how much process a job gets), the git workflow summary, and the review checklists. |
 | `feature-spec` | Drafts a product spec from a request and recommends the small or large route. Holds `workflow-gates.md`, the rules for what each stage needs before it may start. |
 | `feature-refine` | The detailed product interview for a large feature, one question at a time. |
 | `feature-investigate` | Read-only look at how the repository behaves today, written up as private findings. |
@@ -45,7 +45,7 @@ Then in Claude Code, inside the repository you work on:
 
 Each file sets a worker's model, effort and tools. The Foreman dispatches them; you never call them directly.
 
-- **Writers:** `feature-spec-writer`, `feature-investigator`, `feature-planner`, `feature-implementer`, `feature-tester`.
+- **Writers:** `feature-spec-writer`, `feature-wireframer` (draws the spec's screens with the `feature-wireframe` skill), `feature-investigator`, `feature-planner`, `feature-implementer`, `feature-tester`.
 - **Review lenses**, run in parallel on the finished code: `feature-reviewer` (spec conformance), and `feature-review-permissions`, `-db`, `-tests`, `-ui`, `-errors`, `-performance`, `-conventions`.
 - **`feature-fable-check`:** a short, independent second look at one document or change, on request.
 
@@ -59,16 +59,18 @@ Run `/feature-wireframe <idea>` (or pass a spec path) inside the repository the 
 - **Verdicts and notes** per screen save with the page. Tell Claude you've reviewed it and it reads them from the page, or use **Copy feedback** and paste. It revises the same page.
 - **Questions to settle** lists open decisions and the assumptions it made.
 
-Inside a `/feature` job it also writes `wireframes.html` (opens straight from disk) and `wireframes.json` (screens, choices, questions, version, link) to the job's folder, for the Foreman and the Feature Workshop. It only reads the repository (no servers, builds or tests) and invents all example data. Pages are saved under `~/.claude/wireframes/<repo>/`.
+Inside a `/feature` job the same skill runs as the **Screens** stage: the `feature-wireframer` worker draws the screens from the agreed spec and writes `wireframes.html` (opens straight from disk; the Feature Workshop shows it in its Screens tab, where verdicts and notes save in the browser) and `wireframes.json` (screens, choices, questions, version) to the job's folder. Nothing is published; your picks and notes come back as lines in your reply to the gate card. It only reads the repository (no servers, builds or tests) and invents all example data. Standalone pages are saved under `~/.claude/wireframes/<repo>/`.
 
 ## How a job runs
 
-1. **Spec.** The Foreman drafts a spec and asks at most three questions.
-2. **Route.** Each job gets a level of process, from a gate-free tweak to a full panel review. The Foreman suggests one from the request and the code it touches; you confirm or change it. Risky changes (migrations, auth, scoping, email) always get more review.
-3. **Investigate and plan.** Read-only findings, then a plan you approve before any code is written (a tweak at L0 builds straight from your request).
-4. **Build.** A fresh implementer per plan step, one local commit per step, in its own git worktree.
-5. **Test and review.** The test plan runs; review lenses report; fixes get one round by default.
-6. **PRs.** Pushed to your fork only. Pull requests to the organisation repository are opened only when you say so.
+1. **Clarify.** For a standard or large job, the Foreman first asks up to five questions that would change what gets built, each with options, a recommendation and what each option means. Often there are none, and it goes straight to the spec.
+2. **Spec.** The Foreman drafts a spec from your request and answers, and asks at most three questions.
+3. **Route.** Each job gets a level of process, from a gate-free tweak to a full panel review. The Foreman suggests one from the request and the code it touches; you confirm or change it. Risky changes (migrations, auth, scoping, email) always get more review.
+4. **Screens.** When the spec names a page, dialog, sheet or email, the screens are drawn for review before any code; what you pick goes into the spec. Skipped when there is nothing to draw.
+5. **Investigate and plan.** Read-only findings, then a plan you approve before any code is written (a tweak at L0 builds straight from your request).
+6. **Build.** A fresh implementer per plan step, one local commit per step, in its own git worktree.
+7. **Test and review.** The test plan runs; review lenses report; fixes get one round by default.
+8. **PRs.** Pushed to your fork only. Pull requests to the organisation repository are opened only when you say so.
 
 Every job keeps its own private folder under `~/.claude/feature-work/<slug>/` with the spec, findings, plan, briefs and a `status.json` the dashboard reads. Nothing from that folder is committed to the repository you are working on.
 
