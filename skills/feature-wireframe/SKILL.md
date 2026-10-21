@@ -38,12 +38,13 @@ Both ways produce the same page; only the questions and the extra job files diff
 
 ### Inside the Feature Workshop
 
-The Workshop shows `wireframes.html` in an iframe (its Screens tab and the wireframe gate card). The page notices it has no artifact database (`window.claude` is absent) and:
+The Workshop shows `wireframes.html` in an iframe (its Screens tab and the wireframe gate card), served from an origin of its own, not the dashboard's, so the page's script can't reach the dashboard; everything between them goes through `postMessage`. The page notices it has no artifact database (`window.claude` is absent) and:
 - saves verdicts, picks and notes to the browser's `localStorage` under the page's title and version (`wf-<repo>-<slug>-notes:v<n>`), so a new version starts clean and an old one keeps its notes;
 - keeps **Copy feedback** working; its text is what the human pastes into the gate card's reply;
 - when inside an iframe, posts to its parent on load, when the current section changes, and after a verdict or pick:
   `{ type: "wireframes", version, current: <key>, screens: [{ key, name, kind, status, choice }] }`, where `kind` is `screen`, `choice`, `questions` or `overview`, `status` is `good`, `ask`, `fix` or `""`, and `choice` is `A`, `B` or `""`;
-- listens for `{ type: "wireframes-goto", key }` (scroll to that section) and `{ type: "wireframes-feedback" }` (replies to the sender with `{ type: "wireframes-feedback", version, text }`, the Copy feedback text).
+- listens for `{ type: "wireframes-goto", key }` (scroll to that section) and `{ type: "wireframes-feedback" }` (replies to the sender with `{ type: "wireframes-feedback", version, text }`, the Copy feedback text);
+- posts `{ type: "wireframes-escape" }` when `Esc` is pressed outside a notes box (the Workshop puts the keyboard back on its own bar; in a notes box `Esc` only leaves the box, and nothing is posted).
 
 A published artifact behaves as before: the database holds the notes and the page posts nothing.
 

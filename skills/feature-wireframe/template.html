@@ -625,6 +625,9 @@ table.wt .num { text-align: right; font-variant-numeric: tabular-nums; }
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && e.target.tagName === "TEXTAREA") { e.target.blur(); return; }
+    // Esc anywhere else, inside the Feature Workshop: hand the keyboard back to the host (another
+    // origin, so it can't hear this key itself). Never from the notes box: there Esc only blurs it.
+    if (e.key === "Escape" && FRAMED) { try { window.parent.postMessage({ type: "wireframes-escape" }, "*"); } catch {} return; }
     if (e.metaKey || e.ctrlKey || e.altKey || /^(TEXTAREA|INPUT|SELECT)$/.test(e.target.tagName)) return;
     const i = sections.indexOf(current), k = e.key.toLowerCase();
     if (k === "j" && i < sections.length - 1) go(sections[i + 1]);
@@ -686,7 +689,9 @@ table.wt .num { text-align: right; font-variant-numeric: tabular-nums; }
     else fallback();
   });
 
-  // Messages from the Feature Workshop: jump to a section, or hand over the feedback text.
+  // Messages from the Feature Workshop: jump to a section, or hand over the feedback text. (Posts to
+  // the parent go to "*": the host is another origin, chosen by whoever framed the page, and nothing
+  // posted holds a secret.)
   if (FRAMED) {
     window.addEventListener("message", (e) => {
       const m = e.data;
