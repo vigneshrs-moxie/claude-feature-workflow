@@ -38,6 +38,7 @@ Then in Claude Code, inside the repository you work on:
 | `feature-refine` | The detailed product interview for a large feature, one question at a time. |
 | `feature-investigate` | Read-only look at how the repository behaves today, written up as private findings. |
 | `feature-plan` | The implementation plan and test plan, from the spec and findings. |
+| `feature-wireframe` | Draws low-fidelity wireframes of a feature idea and publishes them as a private review page, before anything is built. One panel per screen in flow order, states as tabs, Before/Now for changed screens, numbered notes, and two side-by-side options wherever there is a real design choice. Inside a repository it reads the existing pages first, so the screens use the app's real layout and wording. You mark each screen, pick an option per choice, and **Copy feedback** to paste back for a revision. `example/` holds a demo built on a made-up billing app. |
 | `review-walkthrough` | Builds a one-page cue sheet for an in-person review of a branch or PR. Changes are sorted into four zoom levels (System, Module, Function, Line); Quick shows only the highest level with changes, with Explain jumps to a short before/now explanation, and a view picker shows all levels or any one. A wrap-up collects follow-ups. |
 
 ### Agents (`agents/`)
@@ -47,6 +48,17 @@ Each file sets a worker's model, effort and tools. The Foreman dispatches them; 
 - **Writers:** `feature-spec-writer`, `feature-investigator`, `feature-planner`, `feature-implementer`, `feature-tester`.
 - **Review lenses**, run in parallel on the finished code: `feature-reviewer` (spec conformance), and `feature-review-permissions`, `-db`, `-tests`, `-ui`, `-errors`, `-performance`, `-conventions`.
 - **`feature-fable-check`:** a short, independent second look at one document or change, on request.
+
+## Wireframes before building
+
+Run `/feature-wireframe <idea>` (or pass a spec path) inside the repository the feature belongs to. You get a link to a private page:
+
+- **Screens** are greyscale on purpose: the review is about flow, content and placement, not colours. Dashed blue outlines mark what the feature adds; numbered pins match the notes under each screen.
+- **Design choices** show two options side by side, one marked Recommended. Pick one with **Pick A / Pick B** (or the `A` / `B` keys).
+- **Verdicts and notes** per screen save with the page. **Copy feedback** gathers everything as text; paste it back to Claude and it revises the same page.
+- **Questions to settle** lists open decisions and the assumptions it made, so you can overturn them.
+
+It only reads the repository (no servers, builds or tests). Pages are saved under `~/.claude/wireframes/<repo>/`.
 
 ## How a job runs
 
