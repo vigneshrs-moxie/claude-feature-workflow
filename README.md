@@ -38,28 +38,31 @@ Then in Claude Code, inside the repository you work on:
 | `feature-refine` | The detailed product interview for a large feature, one question at a time. |
 | `feature-investigate` | Read-only look at how the repository behaves today, written up as private findings. |
 | `feature-plan` | The implementation plan and test plan, from the spec and findings. |
-| `feature-wireframe` | Designs the screens for a feature idea and publishes them as a private review page before anything is built. Inside a repository it reads the app's theme, components and the pages the idea touches, and draws the screens in the app's own design (low-fidelity wireframes on request). One panel per screen in flow order, states as tabs, Before/Now for changed screens, numbered notes, and two side-by-side options wherever there is a real design choice. Works on its own or inside a `/feature` job. `example/` holds a low-fidelity demo on a made-up billing app. |
+| `wireframe` | Draws the screens for a feature or product idea and publishes them as a private review page before anything is built. Four fidelities: text in the reply, hand-drawn sketch, greyscale lo-fi, and hi-fi in the app's own design (read from the repository and cached, or a bundled preset when there is no design system). One panel per screen in flow order, states as tabs, Before/Now for changed screens, numbered notes, clickable exits between screens, and two side-by-side options wherever there is a real design choice. Reviewers mark, pick and annotate on the page; it also writes a build brief and keeps a gallery of every page. Works in any repository or with none. `example/` holds a lo-fi and a hi-fi demo on a made-up billing app. |
+| `feature-wireframe` | The Screens stage of a `/feature` job: runs `wireframe` in job mode (no questions, files to the job folder, nothing published) for the Foreman and the Feature Workshop. |
 | `review-walkthrough` | Builds a one-page cue sheet for an in-person review of a branch or PR. Changes are sorted into four zoom levels (System, Module, Function, Line); Quick shows only the highest level with changes, with Explain jumps to a short before/now explanation, and a view picker shows all levels or any one. A wrap-up collects follow-ups. |
 
 ### Agents (`agents/`)
 
 Each file sets a worker's model, effort and tools. The Foreman dispatches them; you never call them directly.
 
-- **Writers:** `feature-spec-writer`, `feature-wireframer` (draws the spec's screens with the `feature-wireframe` skill), `feature-investigator`, `feature-planner`, `feature-implementer`, `feature-tester`.
+- **Writers:** `feature-spec-writer`, `feature-wireframer` (draws the spec's screens with the `wireframe` skill in job mode), `feature-investigator`, `feature-planner`, `feature-implementer`, `feature-tester`.
 - **Review lenses**, run in parallel on the finished code: `feature-reviewer` (spec conformance), and `feature-review-permissions`, `-db`, `-tests`, `-ui`, `-errors`, `-performance`, `-conventions`.
 - **`feature-fable-check`:** a short, independent second look at one document or change, on request.
 
 ## Screens before building
 
-Run `/feature-wireframe <idea>` (or pass a spec path) inside the repository the feature belongs to. You get a link to a private page:
+Run `/wireframe <idea>` (or pass a spec path) inside the repository the feature belongs to, or anywhere for an idea with no code yet. You get a link to a private page:
 
-- **Screens in the app's own design.** It copies the app's Tailwind theme and component styles, so a new button or dialog looks the way it will when built. **Screens: Light/Dark** shows both themes; **100%** shows a screen at actual size. Add "low-fi" for greyscale wireframes instead.
-- **Pink dashed outlines** mark what the feature adds; numbered pins match the notes under each screen.
-- **Design choices** show two options side by side, one marked Recommended. Pick one with **Pick A / Pick B** (or the `A` / `B` keys).
-- **Verdicts and notes** per screen save with the page. Tell Claude you've reviewed it and it reads them from the page, or use **Copy feedback** and paste. It revises the same page.
+- **Four fidelities.** Say "in chat" for a text wireframe in the reply, "sketch" for a hand-drawn page, "low-fi" for greyscale boxes, or nothing: inside a repository with a design system the screens come **in the app's own design**. The theme and component classes are captured once into `~/.claude/wireframes/<repo>/design.md` and reused; Tailwind v4, Tailwind v3 and plain CSS apps all work, and three bundled presets (admin, consumer, mono) stand in when there is no design system. A tier chip on the page says what that fidelity decides and what it leaves open.
+- **Screens: Light/Dark** shows both themes; **100%** shows a screen at actual size.
+- **Pink dashed outlines** mark what the feature adds; numbered pins match the notes under each screen. Controls that open another screen are clickable, each screen lists where it goes, and the overview carries a map.
+- **Design choices** show two options side by side, one marked Recommended. Pick one with **Pick A / Pick B** (or the `A` / `B` keys). A rejected option never comes back.
+- **Verdicts and notes** per screen save with the page, along with how far the next round may go (refine, adjacent, explore). Tell Claude you've reviewed it and it reads them from the page, or use **Copy feedback** and paste. It revises the same page; a states coverage table in the wrap-up shows which empty, error and loading views were drawn.
 - **Questions to settle** lists open decisions and the assumptions it made.
+- **A build brief** (`<slug>.brief.md`) lists the screens, states, exits, components, wording and decisions, for whoever builds it. Every page is listed in the gallery at `~/.claude/wireframes/index.html`.
 
-Inside a `/feature` job the same skill runs as the **Screens** stage: the `feature-wireframer` worker draws the screens from the agreed spec and writes `wireframes.html` (opens straight from disk; the Feature Workshop shows it in its Screens tab, where verdicts and notes save in the browser) and `wireframes.json` (screens, choices, questions, version) to the job's folder. Nothing is published; your picks and notes come back as lines in your reply to the gate card. It only reads the repository (no servers, builds or tests) and invents all example data. Standalone pages are saved under `~/.claude/wireframes/<repo>/`.
+Inside a `/feature` job the `feature-wireframe` wrapper runs the same skill as the **Screens** stage: the `feature-wireframer` worker draws the screens from the agreed spec and writes `wireframes.html` (opens straight from disk; the Feature Workshop shows it in its Screens tab, where verdicts and notes save in the browser), `wireframes.json` (screens, exits, choices, questions, version) and `wireframes.brief.md` to the job's folder. Nothing is published; your picks and notes come back as lines in your reply to the gate card. It only reads the repository (no servers, builds or tests) and invents all example data.
 
 ## How a job runs
 

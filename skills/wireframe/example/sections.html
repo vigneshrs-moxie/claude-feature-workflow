@@ -20,7 +20,7 @@
             <div class="app">
               <nav class="side"><b class="logo">Acme Billing</b><span>Dashboard</span><span class="on">Invoices</span><span>Customers</span><span>Reports</span><span>Settings</span></nav>
               <div class="main">
-                <div class="ph"><h4>Invoices</h4><div class="row"><span class="wb">Actions ▾</span><span class="wb new">Download CSV</span><i class="pin">1</i><span class="wb pri">New invoice</span></div></div>
+                <div class="ph"><h4>Invoices</h4><div class="row"><span class="wb">Actions ▾</span><span class="wb new" data-go="s-confirm">Download CSV</span><i class="pin">1</i><span class="wb pri">New invoice</span></div></div>
                 <div class="row"><span class="badge">All</span><span class="badge">Draft</span><span class="badge">Sent</span><span class="badge solid">Overdue</span><span class="badge">Paid</span><span class="in">palms</span><span class="sel">Last 30 days</span><i class="pin">2</i></div>
                 <table class="wt">
                   <tr><th>Number</th><th>Customer</th><th>Issued</th><th>Due</th><th>Status</th><th class="num">Amount</th></tr>
@@ -121,7 +121,7 @@
               <p style="margin:0">The file uses your current filters: <b>Overdue</b> · search "palms" · <b>Last 30 days</b>.</p><i class="pin">1</i>
               <span class="help">One row per invoice. Amounts in US dollars.</span><i class="pin">2</i>
             </div>
-            <div class="foot"><span class="wb">Cancel</span><span class="wb pri">Download</span></div>
+            <div class="foot"><span class="wb" data-go="s-list">Cancel</span><span class="wb pri" data-go="s-done">Download</span></div>
           </div>
         </div>
       </div>
@@ -173,7 +173,7 @@
               <div class="ph"><h4>Invoices</h4><div class="row"><span class="wb">Actions ▾</span><span class="wb">Download CSV</span><span class="wb pri">New invoice</span></div></div>
               <span class="sk w90"></span><span class="sk w90"></span><span class="sk w50"></span>
             </div>
-            <div class="toast new">Downloaded 3 invoices<i class="pin">1</i></div>
+            <div class="toast new" data-go="s-file" data-go-label="the downloaded file">Downloaded 3 invoices<i class="pin">1</i></div>
           </div>
         </figure>
         <figure class="state" data-label="Large export">
@@ -203,7 +203,7 @@
     </div>
   </section>
 
-  <section data-key="s-file" data-screen="The file">
+  <section data-key="s-file" data-screen="The file" data-end>
     <div class="content">
       <p class="step"></p>
       <h2>What's in the file</h2>
@@ -220,7 +220,7 @@
         </div>
       </div>
       <ol class="callouts">
-        <li><strong>The file name</strong> says the filter and the date: <code>invoices-overdue-2026-10-21.csv</code>.</li>
+        <li><strong>The file name</strong> says the filter and the date: <code>invoices-overdue-2026-10-21.csv</code>. It is never empty: the button is disabled when nothing matches.</li>
         <li><strong>Dates and amounts are plain</strong> (2026-09-12, 480.00) so spreadsheets sort and add them correctly.</li>
         <li><strong>Paid on and Customer email</strong> aren't on the page but are in the file. Customer email is personal data; see Questions to settle.</li>
       </ol>

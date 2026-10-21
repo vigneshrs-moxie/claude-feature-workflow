@@ -1,0 +1,273 @@
+  <section data-key="overview">
+    <div class="content">
+      <p class="step">Summary</p>
+      <h2>What this adds</h2>
+      <p class="lede">Admins and billing staff can download the invoices they're looking at as a CSV file, with the same filters the page shows.</p>
+      <p>It starts on the Invoices page. Viewers don't get it, the same way they don't get New invoice today. There are two design choices: where the button lives, and whether to confirm first. Drawn with the app's own stylesheet; a long customer name and a zero-row case are in the screens on purpose.</p>
+      <ol class="flow" id="flow"></ol>
+      <div class="legend"><span><i class="sw"></i>New in this feature</span><span><i class="sw gone"></i>Removed</span><span><i class="pin">1</i>See the note with that number</span></div>
+    </div>
+  </section>
+
+  <section data-key="s-list" data-screen="Invoices list">
+    <div class="content">
+      <p class="step"></p>
+      <h2>Invoices list</h2>
+      <p>Where it starts. Shown with option A from the next choice; the states show what changes by role and when nothing matches.</p>
+      <div class="states">
+        <figure class="state" data-label="Admin or billing">
+          <div class="frame hifi" data-url="/invoices?status=Overdue" data-width="1180">
+            <div class="layout">
+              <nav class="sidebar"><b>Acme Billing</b><a>Dashboard</a><a aria-current="true">Invoices</a><a>Customers</a><a>Reports</a><a>Settings</a></nav>
+              <main>
+                <header class="page-header"><h1>Invoices</h1><div class="actions"><span class="menu"><span class="summary">Actions ▾</span></span><span class="button new" data-go="s-confirm">Download CSV</span><i class="pin">1</i><span class="button primary">New invoice</span></div></header>
+                <div class="filters"><a>All</a><a>Draft</a><a>Sent</a><a aria-current="true">Overdue</a><a>Paid</a><span class="field">palms</span><span class="field select">Last 30 days</span><i class="pin">2</i></div>
+                <table>
+                  <thead><tr><th>Number</th><th>Customer</th><th>Issued</th><th>Due</th><th>Status</th><th class="amount">Amount</th></tr></thead>
+                  <tbody>
+                    <tr><td>INV-1042</td><td>Desert Palms HOA</td><td>Sep 12</td><td>Oct 12</td><td><span class="status overdue">Overdue</span></td><td class="amount">$480.00</td></tr>
+                    <tr><td>INV-1037</td><td>Palms, Palms &amp; Associates Property Management (Mesa branch)</td><td>Sep 8</td><td>Oct 8</td><td><span class="status overdue">Overdue</span></td><td class="amount">$12,250.00</td></tr>
+                    <tr><td>INV-1029</td><td>Twin Palms Storage</td><td>Sep 1</td><td>Oct 1</td><td><span class="status overdue">Overdue</span></td><td class="amount">$96.50</td></tr>
+                  </tbody>
+                </table>
+              </main>
+            </div>
+          </div>
+        </figure>
+        <figure class="state" data-label="No matches">
+          <div class="frame hifi" data-url="/invoices?status=Paid&amp;q=zzz" data-width="1180">
+            <div class="layout">
+              <nav class="sidebar"><b>Acme Billing</b><a>Dashboard</a><a aria-current="true">Invoices</a><a>Customers</a><a>Reports</a><a>Settings</a></nav>
+              <main>
+                <header class="page-header"><h1>Invoices</h1><div class="actions"><span class="menu"><span class="summary">Actions ▾</span></span><span class="button new" aria-disabled="true">Download CSV</span><i class="pin">3</i><span class="button primary">New invoice</span></div></header>
+                <div class="filters"><a>All</a><a>Draft</a><a>Sent</a><a>Overdue</a><a aria-current="true">Paid</a><span class="field">zzz</span><span class="field select">Last 30 days</span></div>
+                <div class="empty">No invoices match these filters.</div>
+              </main>
+            </div>
+          </div>
+        </figure>
+        <figure class="state" data-label="Viewer">
+          <div class="frame hifi" data-url="/invoices" data-width="1180">
+            <div class="layout">
+              <nav class="sidebar"><b>Acme Billing</b><a>Dashboard</a><a aria-current="true">Invoices</a><a>Customers</a><a>Reports</a><a>Settings</a></nav>
+              <main>
+                <header class="page-header"><h1>Invoices</h1><i class="pin">4</i></header>
+                <div class="filters"><a aria-current="true">All</a><a>Draft</a><a>Sent</a><a>Overdue</a><a>Paid</a><span class="field">Search customer or number</span><span class="field select">Last 30 days</span></div>
+                <table>
+                  <thead><tr><th>Number</th><th>Customer</th><th>Issued</th><th>Due</th><th>Status</th><th class="amount">Amount</th></tr></thead>
+                  <tbody>
+                    <tr><td>INV-1048</td><td>Mesa Verde Apartments</td><td>Oct 18</td><td>Nov 17</td><td><span class="status">Sent</span></td><td class="amount">$2,140.00</td></tr>
+                    <tr><td>INV-1047</td><td>Saguaro Self Storage</td><td>Oct 17</td><td>Nov 16</td><td><span class="status">Draft</span></td><td class="amount">$0.00</td></tr>
+                  </tbody>
+                </table>
+              </main>
+            </div>
+          </div>
+        </figure>
+      </div>
+      <ol class="callouts">
+        <li><strong>Download CSV</strong> sits next to New invoice, as a plain button so New invoice stays the main action.</li>
+        <li><strong>The file follows these filters:</strong> status, search and date range. What you see is what you get.</li>
+        <li><strong>Disabled</strong> when nothing matches, with a hover hint: "No invoices to download with these filters."</li>
+        <li><strong>Viewers</strong> see no button, the same rule that hides New invoice and Actions today.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section data-key="c-entry" data-choice>
+    <div class="content">
+      <p class="step">Design choice</p>
+      <h2>Where does the download start?</h2>
+      <p>Both use what the page already has: header buttons, or the Actions menu that holds Send reminders and Mark as paid.</p>
+      <div class="options">
+        <figure class="option" data-option="A" data-label="Button in the page header">
+          <div class="opt-head"><h4><b>A</b>Button in the page header</h4><span class="rec">Recommended</span></div>
+          <div class="frame hifi" data-url="/invoices" data-width="900">
+            <div class="layout" style="grid-template-columns: 1fr; min-height: 220px">
+              <main>
+                <header class="page-header"><h1>Invoices</h1><div class="actions"><span class="menu"><span class="summary">Actions ▾</span></span><span class="button new">Download CSV</span><span class="button primary">New invoice</span></div></header>
+                <div class="filters"><a>All</a><a>Draft</a><a>Sent</a><a aria-current="true">Overdue</a><a>Paid</a></div>
+                <table><thead><tr><th>Number</th><th>Customer</th><th>Status</th><th class="amount">Amount</th></tr></thead><tbody><tr><td>INV-1042</td><td>Desert Palms HOA</td><td><span class="status overdue">Overdue</span></td><td class="amount">$480.00</td></tr></tbody></table>
+              </main>
+            </div>
+          </div>
+          <div class="tradeoffs"><div><h5>Good</h5><ul><li>One click, easy to find</li><li>Billing staff export weekly</li></ul></div><div><h5>Watch</h5><ul><li>Header gets a third control</li></ul></div></div>
+        </figure>
+        <figure class="option" data-option="B" data-label="Item in the Actions menu">
+          <div class="opt-head"><h4><b>B</b>Item in the Actions menu</h4></div>
+          <div class="frame hifi" data-url="/invoices" data-width="900">
+            <div class="layout" style="grid-template-columns: 1fr; min-height: 220px">
+              <main>
+                <header class="page-header"><h1>Invoices</h1><div class="actions"><span class="menu"><span class="summary">Actions ▾</span><div class="menu-list"><span>Send reminders</span><span>Mark as paid</span><span class="hover new">Download CSV</span></div></span><span class="button primary">New invoice</span></div></header>
+                <div class="filters"><a>All</a><a>Draft</a><a>Sent</a><a aria-current="true">Overdue</a><a>Paid</a></div>
+                <table><thead><tr><th>Number</th><th>Customer</th><th>Status</th><th class="amount">Amount</th></tr></thead><tbody><tr><td>INV-1042</td><td>Desert Palms HOA</td><td><span class="status overdue">Overdue</span></td><td class="amount">$480.00</td></tr></tbody></table>
+              </main>
+            </div>
+          </div>
+          <div class="tradeoffs"><div><h5>Good</h5><ul><li>Header stays as it is</li></ul></div><div><h5>Watch</h5><ul><li>Hidden behind a click</li><li>Sits next to actions that change data</li></ul></div></div>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section data-key="s-confirm" data-screen="Confirm download">
+    <div class="content">
+      <p class="step"></p>
+      <h2>Confirm download</h2>
+      <p>The app's usual confirmation dialog, saying exactly what goes into the file. Only shown with option B of the next choice.</p>
+      <div class="frame hifi" data-url="/invoices?status=Overdue" data-width="1180">
+        <div class="layout">
+          <nav class="sidebar"><b>Acme Billing</b><a>Dashboard</a><a aria-current="true">Invoices</a><a>Customers</a><a>Reports</a><a>Settings</a></nav>
+          <main>
+            <header class="page-header"><h1>Invoices</h1><div class="actions"><span class="menu"><span class="summary">Actions ▾</span></span><span class="button">Download CSV</span><span class="button primary">New invoice</span></div></header>
+            <div class="filters"><a>All</a><a>Draft</a><a>Sent</a><a aria-current="true">Overdue</a><a>Paid</a><span class="field">palms</span><span class="field select">Last 30 days</span></div>
+            <table><thead><tr><th>Number</th><th>Customer</th><th>Issued</th><th>Due</th><th>Status</th><th class="amount">Amount</th></tr></thead><tbody><tr><td>INV-1042</td><td>Desert Palms HOA</td><td>Sep 12</td><td>Oct 12</td><td><span class="status overdue">Overdue</span></td><td class="amount">$480.00</td></tr><tr><td>INV-1037</td><td>Palms Dental Group</td><td>Sep 8</td><td>Oct 8</td><td><span class="status overdue">Overdue</span></td><td class="amount">$1,250.00</td></tr></tbody></table>
+          </main>
+          <div class="backdrop">
+            <div class="dialog new">
+              <h2>Download 3 invoices?</h2>
+              <p>The file uses your current filters: <b>Overdue</b> · search "palms" · <b>Last 30 days</b>.<i class="pin">1</i></p>
+              <p>One row per invoice. Amounts in US dollars.<i class="pin">2</i></p>
+              <footer><span class="button" data-go="s-list">Cancel</span><span class="button primary" data-go="s-done">Download</span></footer>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="callouts">
+        <li><strong>The filters are spelled out,</strong> so nobody sends a partial list thinking it's everything. The search box is easy to forget.</li>
+        <li><strong>One row per invoice;</strong> line items aren't in the file (see Questions to settle).</li>
+      </ol>
+    </div>
+  </section>
+
+  <section data-key="c-confirm" data-choice>
+    <div class="content">
+      <p class="step">Design choice</p>
+      <h2>Confirm first, or download straight away?</h2>
+      <p>Downloading changes nothing, so a confirmation is only there to show which filters apply.</p>
+      <div class="options">
+        <figure class="option" data-option="A" data-label="Download straight away">
+          <div class="opt-head"><h4><b>A</b>Download straight away</h4></div>
+          <div class="frame hifi" data-url="/invoices?status=Overdue" data-width="900">
+            <div class="layout" style="grid-template-columns: 1fr; min-height: 200px">
+              <main>
+                <header class="page-header"><h1>Invoices</h1><div class="actions"><span class="button new">Download CSV</span><span class="button primary">New invoice</span></div></header>
+                <table><thead><tr><th>Number</th><th>Customer</th><th class="amount">Amount</th></tr></thead><tbody><tr><td>INV-1042</td><td>Desert Palms HOA</td><td class="amount">$480.00</td></tr></tbody></table>
+              </main>
+              <div class="toast new">Downloaded 3 invoices</div>
+            </div>
+          </div>
+          <div class="tradeoffs"><div><h5>Good</h5><ul><li>One click</li><li>Toast confirms the count</li></ul></div><div><h5>Watch</h5><ul><li>Easy to miss an active search</li></ul></div></div>
+        </figure>
+        <figure class="option" data-option="B" data-label="Confirm with the filters spelled out">
+          <div class="opt-head"><h4><b>B</b>Confirm with the filters spelled out</h4><span class="rec">Recommended</span></div>
+          <div class="frame hifi" data-url="/invoices?status=Overdue" data-width="900">
+            <div class="layout" style="grid-template-columns: 1fr; min-height: 200px">
+              <main>
+                <header class="page-header"><h1>Invoices</h1><div class="actions"><span class="button">Download CSV</span><span class="button primary">New invoice</span></div></header>
+                <table><thead><tr><th>Number</th><th>Customer</th><th class="amount">Amount</th></tr></thead><tbody><tr><td>INV-1042</td><td>Desert Palms HOA</td><td class="amount">$480.00</td></tr></tbody></table>
+              </main>
+              <div class="backdrop"><div class="dialog new"><h2>Download 3 invoices?</h2><p>The file uses your current filters: <b>Overdue</b> · search "palms" · <b>Last 30 days</b>.</p><footer><span class="button">Cancel</span><span class="button primary">Download</span></footer></div></div>
+            </div>
+          </div>
+          <div class="tradeoffs"><div><h5>Good</h5><ul><li>Shows the count and filters before sending a file anywhere</li><li>Reuses the app's dialog</li></ul></div><div><h5>Watch</h5><ul><li>One more click every time</li></ul></div></div>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section data-key="s-done" data-screen="After downloading">
+    <div class="content">
+      <p class="step"></p>
+      <h2>After downloading</h2>
+      <p>What the person sees once the file is made, when it's slow, and when it fails.</p>
+      <div class="states">
+        <figure class="state" data-label="Done">
+          <div class="frame hifi" data-url="/invoices?status=Overdue" data-width="1180">
+            <div class="layout" style="min-height: 420px">
+              <nav class="sidebar"><b>Acme Billing</b><a>Dashboard</a><a aria-current="true">Invoices</a><a>Customers</a><a>Reports</a><a>Settings</a></nav>
+              <main>
+                <header class="page-header"><h1>Invoices</h1><div class="actions"><span class="menu"><span class="summary">Actions ▾</span></span><span class="button">Download CSV</span><span class="button primary">New invoice</span></div></header>
+                <div class="filters"><a>All</a><a>Draft</a><a>Sent</a><a aria-current="true">Overdue</a><a>Paid</a><span class="field">palms</span><span class="field select">Last 30 days</span></div>
+                <table><thead><tr><th>Number</th><th>Customer</th><th>Status</th><th class="amount">Amount</th></tr></thead><tbody><tr><td>INV-1042</td><td>Desert Palms HOA</td><td><span class="status overdue">Overdue</span></td><td class="amount">$480.00</td></tr></tbody></table>
+              </main>
+              <div class="toast new" data-go="s-file" data-go-label="the downloaded file">Downloaded 3 invoices<i class="pin">1</i></div>
+            </div>
+          </div>
+        </figure>
+        <figure class="state" data-label="Large export">
+          <div class="frame hifi" data-url="/invoices?status=All&amp;range=year" data-width="1180">
+            <div class="layout" style="min-height: 420px">
+              <nav class="sidebar"><b>Acme Billing</b><a>Dashboard</a><a aria-current="true">Invoices</a><a>Customers</a><a>Reports</a><a>Settings</a></nav>
+              <main>
+                <header class="page-header"><h1>Invoices</h1><div class="actions"><span class="menu"><span class="summary">Actions ▾</span></span><span class="button" aria-disabled="true">Preparing…</span><span class="button primary">New invoice</span></div></header>
+                <div class="notice new"><span><b>Preparing 12,400 invoices.</b> This can take a minute. You can keep working.</span><i class="pin">2</i></div>
+                <div class="filters"><a aria-current="true">All</a><a>Draft</a><a>Sent</a><a>Overdue</a><a>Paid</a><span class="field">Search customer or number</span><span class="field select">This year</span></div>
+                <table><thead><tr><th>Number</th><th>Customer</th><th>Status</th><th class="amount">Amount</th></tr></thead><tbody><tr><td>INV-1048</td><td>Mesa Verde Apartments</td><td><span class="status">Sent</span></td><td class="amount">$2,140.00</td></tr></tbody></table>
+              </main>
+            </div>
+          </div>
+        </figure>
+        <figure class="state" data-label="Failed">
+          <div class="frame hifi" data-url="/invoices?status=Overdue" data-width="1180">
+            <div class="layout" style="min-height: 420px">
+              <nav class="sidebar"><b>Acme Billing</b><a>Dashboard</a><a aria-current="true">Invoices</a><a>Customers</a><a>Reports</a><a>Settings</a></nav>
+              <main>
+                <header class="page-header"><h1>Invoices</h1><div class="actions"><span class="menu"><span class="summary">Actions ▾</span></span><span class="button">Download CSV</span><span class="button primary">New invoice</span></div></header>
+                <div class="notice error new"><span><b>The file couldn't be made.</b> Nothing was downloaded.</span><span class="button" data-go="s-confirm">Try again</span><i class="pin">3</i></div>
+                <div class="filters"><a>All</a><a>Draft</a><a>Sent</a><a aria-current="true">Overdue</a><a>Paid</a><span class="field">palms</span><span class="field select">Last 30 days</span></div>
+                <table><thead><tr><th>Number</th><th>Customer</th><th>Status</th><th class="amount">Amount</th></tr></thead><tbody><tr><td>INV-1042</td><td>Desert Palms HOA</td><td><span class="status overdue">Overdue</span></td><td class="amount">$480.00</td></tr></tbody></table>
+              </main>
+            </div>
+          </div>
+        </figure>
+      </div>
+      <ol class="callouts">
+        <li><strong>The toast gives the count,</strong> using the app's usual bottom-right toast.</li>
+        <li><strong>Over 5,000 rows,</strong> a notice shows while the file is made; the button waits until it's done.</li>
+        <li><strong>A failure</strong> says what happened and offers Try again; nothing is half-downloaded.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section data-key="s-file" data-screen="The file" data-end>
+    <div class="content">
+      <p class="step"></p>
+      <h2>What's in the file</h2>
+      <p>Opened in a spreadsheet. Same columns as the page, plus the two that billing asks for most.</p>
+      <div class="frame hifi" data-url="invoices-overdue-2026-10-21.csv" data-width="1180">
+        <div class="layout" style="grid-template-columns: 1fr; min-height: 220px">
+          <main>
+            <table>
+              <thead><tr><th>Number</th><th>Customer</th><th>Issued</th><th>Due</th><th>Status</th><th class="amount">Amount</th><th class="new">Paid on</th><th class="new">Customer email</th></tr></thead>
+              <tbody>
+                <tr><td>INV-1042</td><td>Desert Palms HOA</td><td>2026-09-12</td><td>2026-10-12</td><td>Overdue</td><td class="amount">480.00</td><td></td><td>board@desertpalms.example</td></tr>
+                <tr><td>INV-1037</td><td>Palms, Palms &amp; Associates Property Management (Mesa branch)</td><td>2026-09-08</td><td>2026-10-08</td><td>Overdue</td><td class="amount">12250.00</td><td></td><td>ar@palmspalms.example</td></tr>
+                <tr><td>INV-1029</td><td>Twin Palms Storage</td><td>2026-09-01</td><td>2026-10-01</td><td>Overdue</td><td class="amount">96.50</td><td></td><td>ar@twinpalms.example</td></tr>
+              </tbody>
+            </table>
+            <div><i class="pin">1</i> <i class="pin">2</i> <i class="pin">3</i></div>
+          </main>
+        </div>
+      </div>
+      <ol class="callouts">
+        <li><strong>The file name</strong> says the filter and the date: <code>invoices-overdue-2026-10-21.csv</code>. It is never empty: the button is disabled when nothing matches.</li>
+        <li><strong>Dates and amounts are plain</strong> (2026-09-12, 480.00) so spreadsheets sort and add them correctly.</li>
+        <li><strong>Paid on and Customer email</strong> aren't on the page but are in the file. Customer email is personal data; see Questions to settle.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section data-key="questions">
+    <div class="content">
+      <p class="step">Before building</p>
+      <h2>Questions to settle</h2>
+      <ul class="points">
+        <li><span class="flag">Decide</span>Should the file include customer email? Useful for chasing payments, but it puts personal data in a file that gets emailed around.</li>
+        <li><span class="flag">Decide</span>One row per invoice, or one row per line item? Line items would need a second file or a much wider one.</li>
+        <li><span class="flag assume">Assumed</span>Billing staff get the button as well as admins, because they can already create invoices.</li>
+        <li><span class="flag assume">Assumed</span>Over 5,000 rows the file is made in the background; under that it downloads at once.</li>
+        <li><span class="flag assume">Assumed</span>Loading isn't drawn: the list loads in one request, and the export shows its own Preparing state.</li>
+      </ul>
+    </div>
+  </section>

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wireframes</title>
+<style>
+/* The gallery: every wireframe page built on this machine, newest first, grouped by repository.
+   Copied to ~/.claude/wireframes/index.html by build.py; it reads ./manifest.js, so it works from disk. */
+:root { --bg: #f5f7fa; --surface: #fff; --fg: #16202c; --muted: #5b6676; --line: #dde2ea; --accent: #1f5fbf; --accent-soft: #e6eefb; color-scheme: light; }
+@media (prefers-color-scheme: dark) { :root { --bg: #11161d; --surface: #18202a; --fg: #e4e9f0; --muted: #9aa6b6; --line: #2a3442; --accent: #7aa7ec; --accent-soft: #1c2a40; color-scheme: dark; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif; }
+.wrap { max-width: 1000px; margin: 0 auto; padding: 28px max(16px, env(safe-area-inset-left, 0px)) 56px max(16px, env(safe-area-inset-right, 0px)); }
+h1 { font-size: 1.5em; margin: 0 0 4px; }
+.sub { color: var(--muted); margin: 0 0 18px; }
+input[type="search"] { width: 100%; max-width: 420px; font: inherit; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; margin: 0 0 20px; }
+h2 { font-size: .85em; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 22px 0 8px; }
+ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+li .t { font-weight: 600; }
+li .m { color: var(--muted); font-size: 13px; }
+.tier { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 1px 8px; margin-left: 6px; vertical-align: middle; }
+.links { display: flex; flex-wrap: wrap; gap: 6px; }
+.links a { font-size: 13px; text-decoration: none; color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; background: var(--surface); }
+.links a:hover { border-color: var(--accent); }
+.empty { border: 1.5px dashed var(--line); border-radius: 10px; padding: 24px; color: var(--muted); }
+.empty code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .9em; }
+@media (max-width: 600px) { li { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Wireframes</h1>
+  <p class="sub">Every review page built on this machine, newest first. Pages open from disk; the artifact link is the published copy where verdicts and notes are saved.</p>
+  <input type="search" id="q" placeholder="Search by title or repository" aria-label="Search">
+  <div id="list"></div>
+</div>
+<script src="./manifest.js"></script>
+<script>
+(function () {
+  const all = (window.WIREFRAMES || []).slice().sort((a, b) => (b.built_at || "").localeCompare(a.built_at || ""));
+  const list = document.getElementById("list"), q = document.getElementById("q");
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  function render() {
+    list.textContent = "";
+    const term = q.value.trim().toLowerCase();
+    const rows = all.filter((w) => !term || (w.title + " " + w.repo).toLowerCase().includes(term));
+    if (!all.length) {
+      const e = el("div", "empty");
+      e.append("Nothing here yet. In Claude Code, inside the repository you work on, run ");
+      e.append(el("code", null, "/wireframe <feature idea>"));
+      e.append(" and the page lands here.");
+      list.appendChild(e); return;
+    }
+    if (!rows.length) { list.appendChild(el("div", "empty", "No page matches.")); return; }
+    const groups = new Map();
+    rows.forEach((w) => { if (!groups.has(w.repo)) groups.set(w.repo, []); groups.get(w.repo).push(w); });
+    groups.forEach((items, repo) => {
+      list.appendChild(el("h2", null, repo === "ideas" ? "Ideas (no repository)" : repo));
+      const ul = el("ul");
+      items.forEach((w) => {
+        const li = el("li");
+        const left = el("div");
+        const t = el("div", "t", w.title); t.appendChild(el("span", "tier", { sketch: "Sketch", lo: "Lo-fi", hi: "Hi-fi", preset: "Hi-fi · preset" }[w.tier] || w.tier || ""));
+        const when = w.built_at ? new Date(w.built_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "";
+        left.append(t, el("div", "m", "Revision " + (w.revision || 1) + (when ? " · " + when : "")));
+        const links = el("div", "links");
+        const a = el("a", null, "Open page"); a.href = "./" + w.file; links.appendChild(a);
+        if (w.brief) { const b = el("a", null, "Brief"); b.href = "./" + w.brief; links.appendChild(b); }
+        if (w.url) { const u = el("a", null, "Artifact"); u.href = w.url; u.target = "_blank"; u.rel = "noopener"; links.appendChild(u); }
+        li.append(left, links); ul.appendChild(li);
+      });
+      list.appendChild(ul);
+    });
+  }
+  q.addEventListener("input", render);
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+/* Preset "mono": monochrome, one near-black primary, tight corners. For screens where colour
+   should not distract from structure, or when the brand isn't decided yet.
+   A stand-in for an app that has no design system yet; the page says so in its tier chip.
+   Shaped like a shadcn/ui Tailwind v4 theme, so hi-fi screens use the same classes
+   (bg-background, text-muted-foreground, border, rounded-md, ...) as they would in a real app. */
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --font-sans: var(--font-body);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.25rem;
+  --font-body: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --background: #ffffff; --foreground: #111111;
+  --card: #ffffff; --card-foreground: #111111;
+  --popover: #ffffff; --popover-foreground: #111111;
+  --primary: #111111; --primary-foreground: #ffffff;
+  --secondary: #f2f2f2; --secondary-foreground: #111111;
+  --muted: #f4f4f4; --muted-foreground: #666666;
+  --accent: #ebebeb; --accent-foreground: #111111;
+  --destructive: #d12e2e;
+  --border: #d9d9d9; --input: #d9d9d9; --ring: #111111;
+  --sidebar: #fafafa; --sidebar-foreground: #111111;
+  --sidebar-primary: #111111; --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ebebeb; --sidebar-accent-foreground: #111111;
+  --sidebar-border: #e5e5e5;
+}
+
+.dark {
+  --background: #0f0f0f; --foreground: #ededed;
+  --card: #171717; --card-foreground: #ededed;
+  --popover: #171717; --popover-foreground: #ededed;
+  --primary: #ededed; --primary-foreground: #0f0f0f;
+  --secondary: #262626; --secondary-foreground: #ededed;
+  --muted: #1f1f1f; --muted-foreground: #a3a3a3;
+  --accent: #262626; --accent-foreground: #ededed;
+  --destructive: #f87171;
+  --border: #2e2e2e; --input: #2e2e2e; --ring: #ededed;
+  --sidebar: #0a0a0a; --sidebar-foreground: #e5e5e5;
+  --sidebar-primary: #ededed; --sidebar-primary-foreground: #0f0f0f;
+  --sidebar-accent: #262626; --sidebar-accent-foreground: #ededed;
+  --sidebar-border: #262626;
+}
+
+@layer base {
+  .canvas { font-family: var(--font-body); }
+  .canvas * { @apply border-border outline-ring/50; }
+}

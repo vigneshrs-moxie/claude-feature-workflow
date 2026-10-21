@@ -1,0 +1,7 @@
+app/src/app/globals.css
+app/src/app/invoices/page.tsx
+app/src/components/sidebar.tsx
+app/src/components/actions-menu.tsx
+app/src/components/confirm-dialog.tsx
+app/src/components/toast.tsx
+app/src/lib/roles.ts

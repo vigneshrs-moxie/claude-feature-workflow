@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>{{TITLE}}</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
@@ -36,24 +37,26 @@
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
-/* Headings and lists set explicitly: a high-fidelity page also loads Tailwind, whose reset clears them. */
-h1, h2, h4 { font-weight: 700; } h3, h5 { font-weight: 600; }
+/* Headings and lists set explicitly: a high-fidelity page also loads Tailwind, whose reset clears them.
+   Element rules of the review page stop at .frame (:where keeps their specificity at zero), so an app's own
+   <header>, <a>, <h1>, <aside>, <section> or <p> inside a screen takes only the app's styling. */
+h1:where(:not(.frame *)), h2:where(:not(.frame *)), h4:where(:not(.frame *)) { font-weight: 700; } h3:where(:not(.frame *)), h5:where(:not(.frame *)) { font-weight: 600; }
 .tradeoffs ul { list-style: disc; }
 body { margin: 0; background: var(--rv-bg); color: var(--rv-fg); font: calc(15px * var(--scale))/1.5 var(--font-body); }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--rv-bg); }
 body.big { --scale: 1.2; }
 .wrap { max-width: 1240px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 56px; }
 
-header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--rv-bg); border-bottom: 1px solid var(--rv-line); padding-block: 14px 10px; }
+header:where(:not(.frame *)) { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--rv-bg); border-bottom: 1px solid var(--rv-line); padding-block: 14px 10px; }
 .top { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: flex-end; justify-content: space-between; }
 .top > div { min-width: 0; }
-h1 { font-size: 1.5em; margin: 0; line-height: 1.2; text-wrap: balance; }
+h1:where(:not(.frame *)) { font-size: 1.5em; margin: 0; line-height: 1.2; text-wrap: balance; }
 .meta { margin: 2px 0 0; color: var(--rv-muted); font-size: .85em; }
 .bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.btn, button { font: 500 13px var(--font-body); border: 1px solid var(--rv-line); background: var(--rv-surface); color: var(--rv-fg); padding: 5px 11px; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
-.btn:hover, button:hover { border-color: var(--rv-accent); }
+.btn, button:where(:not(.frame *)) { font: 500 13px var(--font-body); border: 1px solid var(--rv-line); background: var(--rv-surface); color: var(--rv-fg); padding: 5px 11px; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover, button:where(:not(.frame *)):hover { border-color: var(--rv-accent); }
 button:focus-visible, textarea:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--rv-accent); outline-offset: 2px; }
-a { color: var(--rv-accent); }
+a:where(:not(.frame *)) { color: var(--rv-accent); }
 
 .row2 { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
 .strip { display: flex; gap: 6px; overflow-x: auto; flex: 1; min-width: 0; padding-bottom: 2px; scrollbar-width: thin; }
@@ -71,15 +74,15 @@ details.menu > summary::-webkit-details-marker { display: none; }
 .menu-panel p { margin: 0 0 6px; color: var(--rv-muted); }
 .menu-panel code { display: block; font: 12.5px var(--font-mono); padding: 3px 0; overflow-wrap: anywhere; }
 
-section { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 24px; padding: 24px 0; border-bottom: 1px solid var(--rv-line); scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 116px); }
-@media (max-width: 900px) { section { grid-template-columns: minmax(0, 1fr); } }
+section:where(:not(.frame *)) { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 24px; padding: 24px 0; border-bottom: 1px solid var(--rv-line); scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 116px); }
+@media (max-width: 900px) { section:where(:not(.frame *)) { grid-template-columns: minmax(0, 1fr); } }
 .content { min-width: 0; }
 .step { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--rv-accent); font-weight: 600; margin: 0 0 2px; }
-h2 { font-size: 1.3em; margin: 0 0 6px; text-wrap: balance; }
-h3 { font-size: .8em; margin: 14px 0 4px; text-transform: uppercase; letter-spacing: .06em; color: var(--rv-muted); }
-p { margin: 0 0 8px; max-width: 72ch; }
+h2:where(:not(.frame *)) { font-size: 1.3em; margin: 0 0 6px; text-wrap: balance; }
+h3:where(:not(.frame *)) { font-size: .8em; margin: 14px 0 4px; text-transform: uppercase; letter-spacing: .06em; color: var(--rv-muted); }
+p:where(:not(.frame *)) { margin: 0 0 8px; max-width: 72ch; }
 .lede { font-size: 1.08em; font-weight: 500; }
-code { font-family: var(--font-mono); font-size: .86em; background: var(--w-chrome); padding: 1px 5px; border-radius: 4px; }
+code:where(:not(.frame *)) { font-family: var(--font-mono); font-size: .86em; background: var(--w-chrome); padding: 1px 5px; border-radius: 4px; }
 
 /* Flow: the screens in order, built from each screen section's data-screen. */
 .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 10px 0 4px; padding: 0; list-style: none; }
@@ -104,8 +107,8 @@ ul.points li.done > span { color: var(--rv-muted); text-decoration: line-through
 
 /* Callouts: numbered notes that match the pins in the wireframe above them. */
 ol.callouts { margin: 12px 0 0; padding: 0; list-style: none; counter-reset: c; display: grid; gap: 6px; max-width: 80ch; }
-ol.callouts li { counter-increment: c; display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; align-items: start; padding: 2px 6px; border-radius: 6px; }
-ol.callouts li::before { content: counter(c); display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--rv-mark); color: var(--rv-surface); font: 600 11px var(--font-mono); margin-top: 1px; }
+ol.callouts li { counter-increment: c; position: relative; padding: 2px 6px 2px 34px; border-radius: 6px; }
+ol.callouts li::before { content: counter(c); position: absolute; left: 6px; top: 3px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--rv-mark); color: var(--rv-surface); font: 600 11px var(--font-mono); }
 ol.callouts li.hot { background: var(--rv-mark-soft); }
 
 /* States (tabs above one wireframe) and pairs (Before / Now side by side). */
@@ -113,8 +116,8 @@ ol.callouts li.hot { background: var(--rv-mark-soft); }
 .tabs-row button { font-size: 12.5px; padding: 3px 10px; }
 .tabs-row button[aria-selected="true"] { background: var(--rv-accent-soft); border-color: var(--rv-accent); color: var(--rv-accent); font-weight: 600; }
 .state-hint { font-size: 12.5px; color: var(--rv-muted); margin: -2px 0 8px; }
-figure { margin: 0; min-width: 0; }
-figcaption { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--rv-muted); font-weight: 600; margin: 0 0 6px; }
+figure:where(:not(.frame *)) { margin: 0; min-width: 0; }
+figcaption:where(:not(.frame *)) { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--rv-muted); font-weight: 600; margin: 0 0 6px; }
 .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 @media (max-width: 1100px) { .pair { grid-template-columns: minmax(0, 1fr); } }
 
@@ -132,8 +135,8 @@ figcaption { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em
 .tradeoffs h5 { margin: 0 0 2px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--rv-muted); }
 .tradeoffs ul { margin: 0; padding-left: 18px; }
 
-aside { align-self: start; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 124px); display: grid; gap: 8px; }
-@media (max-width: 900px) { aside { position: static; } }
+aside:where(:not(.frame *)) { align-self: start; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 124px); display: grid; gap: 8px; }
+@media (max-width: 900px) { aside:where(:not(.frame *)) { position: static; } }
 .verdict { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
 .verdict button { justify-content: center; padding: 5px 4px; font-size: 12.5px; }
 .verdict button[aria-pressed="true"][data-v="good"] { background: var(--rv-good-soft); border-color: var(--rv-good); color: var(--rv-good); }
@@ -152,7 +155,7 @@ aside textarea { width: 100%; min-height: 110px; resize: vertical; font: calc(14
 .followups p { margin: 4px 0 0; white-space: pre-wrap; }
 .empty-note { color: var(--rv-muted); }
 .hint { font-size: 12px; color: var(--rv-muted); }
-kbd { font: 11px var(--font-mono); border: 1px solid var(--rv-line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: var(--rv-surface); }
+kbd:where(:not(.frame *)) { font: 11px var(--font-mono); border: 1px solid var(--rv-line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: var(--rv-surface); }
 
 /* ---------- Wireframe kit ----------
    Everything inside .frame is a drawing, not a working control. */
@@ -236,7 +239,10 @@ table.wt .num { text-align: right; font-variant-numeric: tabular-nums; }
    app's theme). It is laid out at its real width (data-width, default 1280) inside .canvas and
    scaled down to fit; the 100% button in its browser bar shows it at actual size. */
 .frame.hifi { min-width: 0; background: var(--rv-surface); }
-.frame.hifi .canvas { position: relative; font-size: 14px; line-height: 1.5; color: initial; }
+.frame.hifi .canvas { position: relative; color-scheme: light; }
+.frame.hifi .canvas.dark { color-scheme: dark; }
+/* Defaults the app's theme overrides (zero specificity): a light page with dark text, whatever the review page's theme. */
+:where(.frame.hifi .canvas) { font-size: 14px; line-height: 1.5; color: #111; background: #fff; }
 .frame.hifi.actual { overflow-x: auto; }
 .frame.hifi .chrome button { margin-left: auto; padding: 0 8px; font: 500 11px var(--font-mono); border-radius: 4px; }
 .frame.hifi .chrome span { flex: 0 1 auto; min-width: 0; }
@@ -244,13 +250,56 @@ table.wt .num { text-align: right; font-variant-numeric: tabular-nums; }
 .frame.hifi .pin { width: 24px; height: 24px; font-size: 12.5px; top: 0; box-shadow: 0 0 0 2px #fff; }
 .frame.hifi .pin.hot { box-shadow: 0 0 0 3px var(--rv-mark-soft), 0 0 0 5px var(--rv-mark); }
 #screen-theme[aria-pressed="true"] { background: var(--rv-accent-soft); border-color: var(--rv-accent); }
+/* Tier chip: which fidelity this page is; its title says what the page doesn't decide. */
+.tier { display: inline-block; vertical-align: middle; font: 600 11px var(--font-body); letter-spacing: .05em; text-transform: uppercase; color: var(--rv-accent); background: var(--rv-accent-soft); border-radius: 999px; padding: 2px 8px; margin-left: 8px; cursor: help; }
+/* Hotspots: a control marked data-go jumps to the screen it leads to. */
+.frame [data-go] { cursor: pointer; }
+.frame [data-go]:hover, .frame [data-go]:focus-visible { outline: 2px solid var(--rv-accent); outline-offset: 2px; border-radius: 4px; }
+.exits { font-size: 12.5px; color: var(--rv-muted); margin: 8px 0 0; }
+.exits a, ul.map a { color: var(--rv-fg); text-decoration: none; border-bottom: 1px dotted var(--rv-accent); }
+section.flash { animation: flash 1.2s ease-out; }
+@keyframes flash { from { background: var(--rv-accent-soft); } to { background: transparent; } }
+@media (prefers-reduced-motion: reduce) { section.flash { animation: none; } }
+ul.map { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 2px; font-size: 13px; color: var(--rv-muted); }
+ul.map b { font: 600 11px var(--font-mono); color: var(--rv-accent); margin-right: 6px; }
+/* States coverage, in the wrap-up. */
+#coverage { overflow-x: auto; }
+table.coverage { border-collapse: collapse; font-size: 13px; margin: 0 0 12px; }
+table.coverage caption { text-align: left; margin-bottom: 4px; }
+table.coverage th, table.coverage td { border: 1px solid var(--rv-line); padding: 4px 10px; text-align: left; white-space: nowrap; }
+table.coverage th { font-weight: 600; background: var(--rv-surface); }
+table.coverage td.yes { color: var(--rv-good); text-align: center; font-weight: 600; }
+table.coverage td.no { color: var(--rv-line); text-align: center; }
+/* Next round: how far the revision may go. */
+.intent { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; margin: 0 0 12px; font-size: 13.5px; }
+.intent label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.intent input { accent-color: var(--rv-accent); margin: 0; }
+/* ---------- Sketch ----------
+   The lo-fi kit drawn by hand on graph paper: the same markup, so a sketch becomes a lo-fi page by rebuilding. */
+.sketch { --font-sketch: "Patrick Hand", "Caveat", "Segoe Print", "Bradley Hand", cursive; --rough: 255px 15px 225px 15px / 15px 225px 15px 255px; --w-grid: color-mix(in srgb, var(--w-edge) 30%, transparent); }
+.sketch .frame { font-family: var(--font-sketch); font-size: 14.5px; border: 2px solid var(--w-ink); border-radius: var(--rough);
+  background: linear-gradient(var(--w-grid) 1px, transparent 1px) 0 0 / 100% 24px, linear-gradient(90deg, var(--w-grid) 1px, transparent 1px) 0 0 / 24px 100% var(--w-paper); }
+.sketch .frame .chrome { background: transparent; border-bottom: 2px solid var(--w-ink); }
+.sketch .frame .chrome span { font-family: var(--font-sketch); font-size: 13px; background: transparent; }
+.sketch .wb, .sketch .in, .sketch .sel, .sketch .card, .sketch .badge, .sketch .modal, .sketch .banner, .sketch .empty, .sketch .menu-pop, .sketch .drawer, .sketch .ph-img { border-width: 2px; border-color: var(--w-ink); border-radius: var(--rough); }
+.sketch .wb.ghost { border-color: transparent; }
+.sketch .side { background: transparent; border-right: 2px solid var(--w-ink); }
+.sketch .side span.on, .sketch .wtabs span.on { background: transparent; box-shadow: inset 0 -9px 0 var(--w-fill-2); }
+.sketch table.wt th { background: transparent; border-bottom: 2px solid var(--w-ink); }
+.sketch table.wt td { border-bottom: 1px dashed var(--w-edge); }
+.sketch .sk { height: 3px; border-radius: 0; opacity: .55; background: repeating-linear-gradient(90deg, var(--w-ink-soft) 0 7px, transparent 7px 10px); transform: rotate(-.3deg); }
+.sketch .toast { border: 2px solid var(--w-paper); border-radius: var(--rough); transform: rotate(-1deg); }
+.sketch .card:nth-child(odd) { transform: rotate(-.4deg); } .sketch .card:nth-child(even) { transform: rotate(.3deg); }
+.sketch .modal { transform: rotate(-.5deg); }
+.sketch .frame h4, .sketch .frame h5, .sketch .frame b { font-weight: 700; }
+.sketch .frame .new { outline-width: 2px; outline-offset: 3px; }
 </style>
 
-<div class="wrap">
+<div class="wrap {{MODE}}">
   <header>
     <div class="top">
       <div>
-        <h1>{{TITLE}}</h1>
+        <h1>{{TITLE}} {{TIER}}</h1>
         <p class="meta">{{META}}</p>
       </div>
       <div class="bar">
@@ -271,9 +320,17 @@ table.wt .num { text-align: right; font-variant-numeric: tabular-nums; }
   <section id="summary" aria-labelledby="summary-h">
     <p class="step">Wrap-up</p>
     <h2 id="summary-h">Your feedback</h2>
+    <p class="hint" id="rev"></p>
     <div class="tally" id="tally"></div>
     <ul class="followups" id="followups"></ul>
-    <p class="hint">Mark each screen, pick an option in each design choice, and add notes. <b>Copy feedback</b> collects it all as text to paste back to Claude, who revises the wireframes on the same page.</p>
+    <div id="coverage"></div>
+    <div class="intent" id="intent" role="radiogroup" aria-label="Next round">
+      <span>Next round:</span>
+      <label><input type="radio" name="intent" value="refine"> Refine <span class="hint">polish, same structure</span></label>
+      <label><input type="radio" name="intent" value="adjacent"> Adjacent <span class="hint">change one or two decisions</span></label>
+      <label><input type="radio" name="intent" value="explore"> Explore <span class="hint">try different approaches</span></label>
+    </div>
+    <p class="hint">Mark each screen, pick an option in each design choice, add notes, and say how far the next round may go. <b>Copy feedback</b> collects it all as text to paste back to Claude, who revises the screens on the same page. A rejected option stays rejected.</p>
     <p class="hint"><kbd>J</kbd>/<kbd>K</kbd> next/previous section · <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> verdict · <kbd>A</kbd>/<kbd>B</kbd> pick an option · <kbd>N</kbd> notes · <kbd>Esc</kbd> leave notes · <span id="save-state" aria-live="polite">Notes: connecting…</span></p>
   </section>
 </div>
@@ -419,6 +476,70 @@ table.wt .num { text-align: right; font-variant-numeric: tabular-nums; }
       e.preventDefault(); go(sections.find((s) => s.dataset.key === a.dataset.key));
     });
   }
+
+  // Hotspots: a control marked data-go="<section key>" jumps to that screen. Each screen lists where
+  // it goes, and the overview gets a map of every exit.
+  const byKey = (k) => sections.find((s) => s.dataset.key === k);
+  const nameOf = (s) => s.dataset.screen || title(s);
+  const labelOf = (el) => {
+    if (el.dataset.goLabel) return el.dataset.goLabel;
+    const c = el.cloneNode(true); c.querySelectorAll(".pin").forEach((p) => p.remove());
+    return c.textContent.replace(/\s+/g, " ").trim().slice(0, 60);
+  };
+  const hotspots = Array.from(document.querySelectorAll(".frame [data-go]"));
+  hotspots.forEach((el) => {
+    const t = byKey(el.dataset.go); if (!t) return;
+    el.title = "Goes to " + nameOf(t); el.setAttribute("role", "link"); el.tabIndex = 0;
+    const jump = (e) => { e.preventDefault(); e.stopPropagation(); go(t); t.classList.remove("flash"); void t.offsetWidth; t.classList.add("flash"); };
+    el.addEventListener("click", jump);
+    el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") jump(e); });
+  });
+  const exitsOf = (s) => Array.from(s.querySelectorAll(".frame [data-go]")).map((el) => [labelOf(el), byKey(el.dataset.go)]).filter((x) => x[1]);
+  const link = (t) => { const a = document.createElement("a"); a.href = "#s-" + t.dataset.key; a.textContent = nameOf(t); a.addEventListener("click", (e) => { e.preventDefault(); go(t); }); return a; };
+  screens.forEach((s) => {
+    const ex = exitsOf(s); if (!ex.length) return;
+    const p = document.createElement("p"); p.className = "exits"; p.append("Goes to: ");
+    ex.forEach(([label, t], i) => { if (i) p.append(" · "); p.append(link(t), " (" + label + ")"); });
+    const ol = s.querySelector("ol.callouts");
+    if (ol) ol.before(p); else s.querySelector(".content").appendChild(p);
+  });
+  if (flow && hotspots.length) {
+    const map = document.createElement("ul"); map.className = "map"; map.setAttribute("aria-label", "Where each screen leads");
+    screens.forEach((s, i) => {
+      const ex = exitsOf(s), li = document.createElement("li"), b = document.createElement("b");
+      b.textContent = String(i + 1);
+      li.append(b, nameOf(s) + (ex.length ? " → " : ""));
+      ex.forEach(([label, t], j) => { if (j) li.append(", "); li.append(link(t), " (" + label + ")"); });
+      if (s.hasAttribute("data-end")) li.append(" · the flow ends here");
+      map.appendChild(li);
+    });
+    flow.after(map);
+  }
+
+  // States coverage: which views each screen shows, so a missing empty or error state stands out.
+  (function coverage() {
+    const rows = screens.map((s) => [s, Array.from(s.querySelectorAll("figure.state")).map((f) => f.dataset.label || "")]);
+    if (!rows.some(([, l]) => l.length)) return;
+    const cols = []; rows.forEach(([, l]) => l.forEach((x) => { if (!cols.includes(x)) cols.push(x); }));
+    const t = document.createElement("table"); t.className = "coverage";
+    const cap = document.createElement("caption"); cap.className = "hint"; cap.textContent = "States drawn per screen"; t.appendChild(cap);
+    const head = document.createElement("tr"); const th0 = document.createElement("th"); th0.textContent = "Screen"; head.appendChild(th0);
+    cols.forEach((c) => { const th = document.createElement("th"); th.textContent = c; head.appendChild(th); });
+    t.appendChild(head);
+    rows.forEach(([s, l]) => {
+      const tr = document.createElement("tr"), th = document.createElement("th"); th.textContent = nameOf(s); tr.appendChild(th);
+      cols.forEach((c) => { const td = document.createElement("td"), on = l.includes(c); td.className = on ? "yes" : "no"; td.textContent = on ? "✓" : "·"; tr.appendChild(td); });
+      t.appendChild(tr);
+    });
+    document.getElementById("coverage").appendChild(t);
+  })();
+
+  // Revision and the next round's intent (saved as notes/_meta).
+  const INTENTS = { refine: "polish, same structure", adjacent: "change one or two decisions", explore: "try different approaches" };
+  const metaState = { intent: "" };
+  const intentBox = document.getElementById("intent");
+  const paintIntent = () => intentBox.querySelectorAll("input").forEach((r) => { r.checked = r.value === metaState.intent; });
+  document.getElementById("rev").textContent = VERSION ? "Revision " + VERSION : "";
 
   sections.forEach((s) => {
     const key = s.dataset.key;
@@ -583,6 +704,19 @@ table.wt .num { text-align: right; font-variant-numeric: tabular-nums; }
   const cached = lsGet(KEY, {});
   sections.forEach(paint);
   load(cached);
+  Object.assign(metaState, lsGet(KEY + ":meta", {}));
+  paintIntent();
+  async function saveMeta() {
+    lsSet(KEY + ":meta", metaState);
+    if (!db) { setState("Notes: saved on this device"); return; }
+    try {
+      await db.doc("notes/_meta").set({ ...metaState, updatedAt: new Date().toISOString() });
+      setState("Notes: saved " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }));
+    } catch (e) {
+      setState("Notes: kept on this device only (" + (e && e.code ? e.code : "error") + ")");
+    }
+  }
+  intentBox.addEventListener("change", (e) => { if (e.target.name === "intent") { metaState.intent = e.target.value; saveMeta(); } });
 
   // Inside the Feature Workshop (an iframe): tell the host what the page holds and where the reader is.
   // Sent on load, when the current section changes, and after a verdict or pick.
@@ -654,12 +788,21 @@ table.wt .num { text-align: right; font-variant-numeric: tabular-nums; }
 
   // The Copy feedback text: every verdict, pick, settled question and note, as Claude reads it back.
   function feedbackText() {
-    const lines = ["# " + document.querySelector("h1").textContent + " · feedback", ""];
+    const h1 = document.querySelector("h1");
+    const lines = ["# " + (h1.firstChild ? h1.firstChild.textContent : h1.textContent).trim() + " · feedback"];
+    if (VERSION) lines.push("Revision " + VERSION);
+    if (metaState.intent) lines.push("Next round: " + metaState.intent + " (" + INTENTS[metaState.intent] + ")");
+    const rejected = sections.filter((s) => options(s).length && state[s.dataset.key].choice)
+      .map((s) => { const o = options(s).find((y) => y.dataset.option !== state[s.dataset.key].choice); return o ? s.dataset.key + ": option " + optLabel(o) : null; }).filter(Boolean);
+    if (rejected.length) lines.push("Rejected (don't bring back): " + rejected.join("; "));
+    lines.push("");
+    let any = false;
     sections.forEach((s) => {
       const x = state[s.dataset.key];
       const o = options(s).find((y) => y.dataset.option === x.choice);
       const settled = points(s).filter((_, i) => x.covered.includes(i)).map((li) => li.querySelector("span").textContent.trim());
       if (!x.status && !o && !x.text.trim() && !settled.length) return;
+      any = true;
       lines.push("## " + (s.dataset.key) + " · " + title(s) + (x.status ? " · " + VERDICTS[x.status] : ""));
       if (o) lines.push("Picked option " + optLabel(o));
       else if (options(s).length) lines.push("No option picked");
@@ -668,11 +811,12 @@ table.wt .num { text-align: right; font-variant-numeric: tabular-nums; }
       lines.push("");
     });
     Object.entries(orphans).forEach(([k, x]) => {
+      any = true;
       lines.push("## " + pretty(k) + (x.status in VERDICTS ? " · " + VERDICTS[x.status] : ""));
       if ((x.text || "").trim()) lines.push(x.text.trim());
       lines.push("");
     });
-    return lines.length > 2 ? lines.join("\n").trim() : "(no feedback yet)";
+    return any || metaState.intent ? lines.join("\n").trim() : "(no feedback yet)";
   }
 
   document.getElementById("copy-all").addEventListener("click", () => {
@@ -714,6 +858,7 @@ table.wt .num { text-align: right; font-variant-numeric: tabular-nums; }
         const remote = {};
         snap.docs.forEach((doc) => {
           const x = doc.data() || {};
+          if (doc.id === "_meta") { if (typeof x.intent === "string" && (x.intent === "" || x.intent in INTENTS)) metaState.intent = x.intent; paintIntent(); return; }
           remote[doc.id] = x;
           if (!sections.some((s) => s.dataset.key === doc.id) && ((x.text || "").trim() || x.status in VERDICTS)) orphans[doc.id] = x;
           lastSaved[doc.id] = JSON.stringify({ text: x.text || "", status: x.status || "", choice: x.choice || "", covered: x.covered || [] });
