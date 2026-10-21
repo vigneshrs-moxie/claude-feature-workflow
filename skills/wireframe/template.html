@@ -837,6 +837,8 @@ table.coverage td.no { color: var(--rv-line); text-align: center; }
   // the parent go to "*": the host is another origin, chosen by whoever framed the page, and nothing
   // posted holds a secret.)
   if (FRAMED) {
+    // No origin check on purpose: only the Feature Workshop may frame this page (its frame-ancestors
+    // policy), so whoever posts here is that host; nothing read from a message is trusted beyond a key.
     window.addEventListener("message", (e) => {
       const m = e.data;
       if (!m || typeof m !== "object") return;
