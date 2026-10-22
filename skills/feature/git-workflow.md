@@ -18,7 +18,7 @@ Every new internal task (feature, bug, urgent fix, code-producing investigation,
 
 ## Branch name: the same in the fork and in the org
 
-- Feature: `feature/orbit-<number>-<slug>-v<N>` (e.g. `feature/orbit-123-ticket-comments-v1`); `-v2` only for a separately planned second increment, not a release version.
+- Feature: `feature/orbit-<number>-<slug>` (e.g. `feature/orbit-123-ticket-comments`). No `-vN` suffix; a later increment gets its own ticket and number.
 - Bug/hotfix: `fix/orbit-<number>-<slug>` (e.g. `fix/orbit-124-comment-save`). Also `ci/`, `chore/`, `docs/`, `refactor/` + `orbit-<number>-<slug>`. No ticketless path.
 - Example numbers are illustrative; use the real ticket. One primary ticket per branch; never chain several IDs into the name (list extra tickets in the PR).
 - Existing branches are never renamed, rebased, force-pushed or recreated to comply; `main`, `staging`, `mirror/*`, `dependabot/*` and revert branches keep their names. No `release/*` scheme.
