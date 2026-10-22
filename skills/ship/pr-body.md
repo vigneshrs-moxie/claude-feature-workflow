@@ -1,46 +1,22 @@
 # PR body skeletons
 
-The organisation's PR template (`.github/PULL_REQUEST_TEMPLATE.md` in the git workflow docs) is the source; these are its sections filled the way the team writes them: short, concrete, nothing claimed that didn't run. Keep the section headings, drop the checkbox lines you don't need, and end every body with the attribution line your session carries for pull requests.
+The organisation's PR template (`.github/PULL_REQUEST_TEMPLATE.md` in the git workflow docs) is the source; these are its sections filled the way the team writes them: short, concrete, nothing claimed that didn't run. PR #1 is the short form below; PR #2 and #3 keep the section headings (drop the checkbox lines you don't need) and carry the full detail, and end every body with the attribution line your session carries for pull requests.
 
 ## PR #1 (fork → same-named org branch)
 
+Short: nobody reads a long PR #1. About 10 lines, no template sections, no limitations list, no review log, no test cases (those go in PR #2).
+
 ```markdown
-## Purpose and ticket
+## <TICKET>: <title>
 
-<One paragraph: what the change lets someone do, and why. Ticket or spec link, or "no ticket; requested by …".>
+<One or two sentences: what it lets someone do.>
 
-## PR stage
+**PR stage:** #1 Fork intake (fork → org `<branch>`)
 
-- [x] **#1 Fork intake:** `<fork owner>/<fork repo>:<branch>` -> `<org>:<branch>` (developer self-review + manual merge)
+**Changes**
+- <3–5 bullets, one line each. A migration gets one line, with "apply before the code deploys" if it must.>
 
-**Head:** `<fork owner>/<fork repo>:<branch>` @ `<sha>`
-**Base:** `<org>:<branch>` @ `<sha>` (created from `main` @ `<sha>`)
-**Earlier-stage PRs:** <none, or what this builds on>
-
-## Changes
-
-- <What changed, grouped by area; the user-visible behaviour first, then how.>
-- <Non-obvious choices, in one line each.>
-- Screenshots: <attached | not captured; checked on a local server on <date>>
-
-## Test evidence
-
-- `cd app && npm run check`: <exit 0: typecheck clean, lint N errors, Vitest N files / N tests | not run>
-- `cd app && npm run build`: <exit 0 | not run>
-- Focused tests: <files, counts>
-- Manual: <what was tried, where, by whom>
-- Not run: <what and why>. Full CI does not run on PR #1.
-
-## Risk, rollout, rollback
-
-- Database: <none | migration `NNNN_name`: what it creates; pre- or post-deploy; number checked against main (highest NNNN) and staging (highest NNNN)>
-- Auth, roles, office scope: <none | what changed and how it was checked>
-- Email, integrations, config, dependencies: <none | …>
-- Rollback: <revert the merge commit | plus what a reverted migration leaves behind>
-
-## Review
-
-Self-review of the full diff: <what you checked, what you changed or accepted>. AI review: <not used | findings and their disposition>. I merge this myself once satisfied; Raj's review comes at PR #2.
+**Tests:** <one line: what passed, e.g. `npm run check` and build pass; manual test passed locally. Say "not run" for anything that didn't.>
 ```
 
 ## PR #2 (org branch → staging)
