@@ -96,53 +96,46 @@ Private engineering artifacts. Size each section to the change; a small enhancem
 
 ## acceptance.md
 
-What the feature needs before it is **ready for staging**: what we accept as OK to push to staging and show stakeholders. Written in plain words a stakeholder would recognise in a demo, not in test terms. Approved by version with the plan. It goes to the reviewer (Raj) in the PR #2 body.
+What we accept as OK to push to staging and show stakeholders. A fellow developer reads it in a minute and checks each line before approving the PR. Approved by version with the plan; it goes in the PR #2 body.
+
+**Keep every line short:** one plain sentence, about 12 words at most, something you can see in the app. No IDs, no tables, no "the system shall". Numbers only.
 
 ```markdown
-# <Feature name>: acceptance criteria (ready for staging)
+# <Feature name>: ready for staging
 
-| | |
-|---|---|
-| **Version** | 1 |
-| **Basis** | spec v<x.y> (or quick plan v<n>) · implementation plan v<n> |
-| **Approval** | Not approved |
+Version 1 · from spec v<x.y> and plan v<n> · Not approved
 
-## The feature does
-1. **A-1** <An outcome someone can see in a demo: who, where, what happens. "A manager can add a note to any customer in their office and sees it at the top of the Notes tab.">
-2. **A-2** <…>  (3–7 items; each maps to one or more spec ACs: "covers AC-001, AC-002")
+## It works when
+1. A manager can add a note on any customer.
+2. The newest note shows first, with name and date.
+3. <…>  (3–7 lines)
 
 ## It must not
-- **A-N1** <What must stay as it is, or must not be possible: "A tech can't see notes." "The customer list loads as before.">
+1. Show notes to techs.
+2. Slow down the customer list.
 
-## Before it goes to staging
-- [ ] `cd app && npm run check` and `cd app && npm run build` pass on the branch
-- [ ] Every dev test in `dev-tests.md` passes, or its failure is named and accepted
-- [ ] No errors in the browser console on the pages touched
-- [ ] Database changes: <none | migration `NNNN_name`, applied to staging <before | after> merge>
-- [ ] <Anything else this job needs: copy reviewed, flag on, …>
-
-## Status
-| Item | Met? | How we know (dev test, check, review) |
-|---|---|---|
-| A-1 | Not yet | |
+## Before staging
+- [ ] `npm run check` and `npm run build` pass
+- [ ] Dev tests pass
+- [ ] No console errors on the changed pages
+- [ ] Database: <none | apply migration `NNNN_name` before merge>
 ```
+
+Track which lines are met in the job's records (test report, review), not in this file; tick nothing here.
 
 ## dev-tests.md
 
-Simple ways for the developer to test what was built, by hand, on the job's branch (the Feature Workshop's Try it tab or a local server). **One line each**: who, where, what you do, what you should see. The developer runs these before PR #1; the same list goes to the reviewer in the PR #2 body.
+Quick tests the developer runs by hand on the job's branch (the Feature Workshop's Try it tab or a local server) before PR #1; the same list goes to the reviewer in PR #2. **One simple sentence each**: what you do and what you should see. Name the role only when it matters. No IDs, no tables, no "Covers" column.
 
 ```markdown
 # <Feature name>: dev tests
 
-| | |
-|---|---|
-| **Version** | 1 |
-| **Basis** | acceptance v<n> · implementation plan v<n> |
-| **Setup** | <branch, database changes to apply, test user(s) and role(s), data needed> |
+Setup: <branch, migration to apply, test user(s), data needed>
 
-| # | Test (as who → where → do → see) | Covers | Result |
-|---|---|---|---|
-| D-1 | Office manager → Customers → any customer → Notes → add "hello" → it shows at the top with your name and today's date | A-1 | |
-| D-2 | Tech → same customer → the Notes tab isn't there | A-N1 | |
+1. Add a note "hello" on a customer: it shows at the top with your name.
+2. Open a customer with no notes: you see "No notes yet".
+3. Log in as a tech: there's no Notes tab.
+4. Paste a 2,000-character note: it saves and wraps.
+```
 
-5–10 lines: the main path, an empty state, a permission or role case, one edge case (long text, zero rows, a bad input), and each "It must not" item. Result: `pass`, `fail: <what happened>` or `not run: <why>`.
+5–10 lines: the main path, an empty state, a role case, one edge case, and each "It must not" line. Every "It works when" line has a test. Results go in the job's `manual-test.md` ("all pass", or "3 fails: …"), not in this file.

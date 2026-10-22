@@ -76,13 +76,13 @@ Self-review of the full diff: <what you checked, what you changed or accepted>. 
 
 **Setup:** <branch or staging, database changes to apply, test users and roles, data needed>
 
-**Dev tests** (one line each; tried by <who> on <date>):
-- [x] D-1 <as who → where → do → see>
-- [ ] D-3 <…> (not run: <why>)
+**Dev tests** (tried by <who> on <date>):
+1. <do this: you see that>
+2. <…> (not run: <why>)
 
-**Ready for staging** (what we accept as OK to show stakeholders):
-- [x] A-1 <outcome> (D-1, D-2)
-- [ ] A-2 <outcome> (not met: <why, and whether that's accepted>)
+**Ready for staging** (check each before approving):
+- [ ] <short outcome>
+- [ ] <…>
 
 ## Risk, rollout, rollback
 

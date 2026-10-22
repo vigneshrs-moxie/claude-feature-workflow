@@ -16,4 +16,4 @@ Your stage is **test**.
 3. Write `test-report.md` in the private folder: for each AC, PASS / FAIL / NOT RUN with the evidence (command and the relevant output lines); then failures with likely cause; then checks proposed but not run.
 4. Do not fix code. Failures go to the conductor.
 
-In `test-report.md`, end with a table: each acceptance item (A-1…) and whether your checks show it met, with the evidence. You don't run the dev tests (they are by hand); list any you could check another way.
+In `test-report.md`, end with each acceptance line (by its number) and whether your checks show it met, with the evidence, one line each. You don't run the dev tests (they are by hand); list any you could check another way.
