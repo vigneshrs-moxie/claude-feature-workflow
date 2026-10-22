@@ -58,7 +58,7 @@ Self-review of the full diff: <what you checked, what you changed or accepted>. 
 **Base:** `<org>:staging` @ `<sha>`
 **Earlier-stage PRs:** PR #1 = #<n> (fork -> org branch), merged <date>.
 
-**Scope check:** `git log moxie/staging..moxie/<branch>` lists only this task's <n> commits (plus the PR #1 merge). Diff against staging: <n> files (+a / −b), the same set as against main. <Or: what else is in it and why.>
+**Scope check:** `git log moxie/staging..moxie/<branch>` lists only this task's <n> commits, plus the PR #1 merge and <n> merges of main into the branch. Diff against staging: <n> files (+a / −b), the same set as against main. <Or: what else is in it and why.>
 
 <If it conflicts with staging: the draft notice, the conflicting files and who changed them on staging, and that checks re-run after the sync.>
 

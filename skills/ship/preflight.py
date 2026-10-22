@@ -17,11 +17,12 @@ import argparse, glob, json, os, re, subprocess, sys
 RISK = [
     ("database migration", r"prisma/migrations/"),
     ("schema", r"schema\.prisma$"),
-    ("auth, roles or scope", r"(auth|scope|permission|require-feature|feature-catalog|features\.ts|middleware|access-helpers|entity)"),
+    ("auth, roles or scope", r"(lib/auth|api/auth|auth\.config|auth-permissions|/scope|permission|require-feature|feature-catalog|features\.ts|middleware|access-helpers|entity-stamp|/entities|people-models)"),
     ("email", r"(lib/email|/templates/.*\.tsx$|mailer|resend)"),
     ("CI or deployment config", r"(^\.github/|vercel\.json|next\.config|env\.ts|\.env)"),
     ("dependencies", r"(package\.json|package-lock\.json)$"),
-    ("external integration", r"(fabric|paylocity|pestroutes|fieldroutes|samsara|talkdesk|openrouter|netsuite)"),
+    ("external integration", r"(fabric|paylocity|pestroutes|fieldroutes|samsara|talkdesk|openrouter|netsuite|vercel/blob|/blob|/cron/)"),
+    ("environment variables", r"(env\.ts$|\.env\.example$)"),
 ]
 MIG_DIR = "app/prisma/migrations"
 
@@ -135,7 +136,7 @@ def job_for(branch):
                 continue
             if branch and branch in (st.get("branch") or ""):
                 d = os.path.dirname(sp)
-                files = sorted(f for f in os.listdir(d) if f.endswith(".md") or f == "status.json")
+                files = sorted(os.path.relpath(f, d) for f in glob.glob(os.path.join(d, "**", "*.md"), recursive=True) if "/briefs/" not in f)
                 return {"slug": os.path.basename(d), "folder": d, "stage": st.get("stage"), "prs": st.get("prs"), "files": files}
     return None
 
@@ -181,8 +182,22 @@ def main():
     R["branch"] = branch
     R["tree_clean"] = (git("status", "--porcelain") or "") == ""
     R["head"] = git("rev-parse", "--short", "HEAD")
+    # The worktree that holds the branch, if any (the docs want one worktree per task).
+    R["worktree"] = None
+    cur = {}
+    for line in (git("worktree", "list", "--porcelain") or "").splitlines() + [""]:
+        if line.startswith("worktree "):
+            cur = {"path": line[9:]}
+        elif line.startswith("branch "):
+            cur["branch"] = line[7:].replace("refs/heads/", "")
+        elif line == "" and cur:
+            if cur.get("branch") == branch:
+                wt = cur["path"]
+                R["worktree"] = {"path": wt, "clean": (git("-C", wt, "status", "--porcelain") or "") == "", "here": os.path.realpath(wt) == os.path.realpath(top)}
+            cur = {}
     org_main, org_staging = f"{org}/main", f"{org}/staging"
     R["bases"] = {"main": git("rev-parse", "--short", org_main), "staging": git("rev-parse", "--short", org_staging)}
+    R["staging_ahead_of_main"] = int(git("rev-list", "--count", f"{org_main}..{org_staging}") or 0)
     fork_ref, org_ref = f"{fork}/{branch}", f"{org}/{branch}"
     R["refs"] = {
         "local": git("rev-parse", "--short", branch),
@@ -241,10 +256,14 @@ def main():
         return
 
     if stage == "2" and pr2 and pr2["state"] == "OPEN":
-        v = gh_json("pr", "view", str(pr2["number"]), "--repo", org_repo, "--json", "mergeable,mergeStateStatus,isDraft,reviewDecision")
+        v = gh_json("pr", "view", str(pr2["number"]), "--repo", org_repo, "--json", "mergeable,mergeStateStatus,isDraft,reviewDecision,reviewRequests,latestReviews,updatedAt")
         R["pr2_open"] = {**pr2, **(v or {})}
+        if v:
+            R["pr2_open"]["requested"] = [(r.get("login") or r.get("name") or "?") for r in (v.get("reviewRequests") or [])]
+            R["pr2_open"]["reviews"] = [f"{(r.get('author') or {}).get('login', '?')}: {r.get('state')} {(r.get('submittedAt') or '')[:10]}" for r in (v.get("latestReviews") or [])]
         if v and v.get("mergeable") == "CONFLICTING":
             R["warnings"].append(f"PR #{pr2['number']} conflicts with staging: the sync route (staging-conflicts.md)")
+        R["warnings"].append(f"PR #{pr2['number']} is already open: don't open another; a further commit goes fork -> org branch through a follow-up PR #1, and PR #2 picks it up (new commits need a fresh review)")
 
     if stage == "1":
         base, head = org_main, branch
@@ -297,14 +316,32 @@ def main():
             R.setdefault("conflict_sources", {})[f] = who.splitlines()
     R["risk"] = risk_flags(R["files"])
     R["migrations"] = {"vs_main": migration_check(org_main, head), "vs_staging": migration_check(org_staging, head)}
-    for k, mc in R["migrations"].items():
-        for p in mc.get("problems", []):
-            R["blockers"].append(f"migration {k.replace('vs_', 'against ')}: {p}")
+    highs = [mc["highest"] for mc in R["migrations"].values() if mc.get("highest")]
+    if highs and any(mc.get("problems") for mc in R["migrations"].values()):
+        target = max(highs) + 1
+        R["migration_target"] = target
+        R["blockers"].append(f"migration numbers: renumber this branch's migrations to {target:04d} and up (above both main {highs[0]:04d} and staging {highs[-1]:04d}); "
+                             f"`cd app && npx tsx scripts/renumber-migrations.ts --base {org_staging}` previews it, `--apply` does it (a migration edit: needs the human's yes), then `--check`")
+    else:
+        for k, mc in R["migrations"].items():
+            for p in mc.get("problems", []):
+                R["blockers"].append(f"migration {k.replace('vs_', 'against ')}: {p}")
     if org_repo and stage in ("2", "3", "sync"):
         runs = gh_json("run", "list", "--repo", org_repo, "--branch", "staging" if stage == "3" else branch, "--limit", "4",
                        "--json", "name,status,conclusion,headSha,url,createdAt") or []
-        R["ci"] = [{"name": r["name"], "status": r["status"], "conclusion": r.get("conclusion"), "sha": r["headSha"][:7], "url": r["url"]} for r in runs]
+        base_date = git("log", "-1", "--format=%cI", base) or ""
+        R["ci"] = [{"name": r["name"], "status": r["status"], "conclusion": r.get("conclusion"), "sha": r["headSha"][:7], "url": r["url"],
+                    "date": (r.get("createdAt") or "")[:10], "before_base_moved": (r.get("createdAt") or "") < base_date} for r in runs]
+        if any(c["before_base_moved"] for c in R["ci"]):
+            R["warnings"].append(f"the CI runs on {branch} predate the last change to {base} ({base_date[:10]}): a green run from before the base moved is not proof; the PR's checks re-run on the next push")
     R["job"] = job_for(branch)
+    if R["job"] and R["job"].get("prs"):
+        gh_states = {1: "merged" if pr1_merged else ("open" if any(p["state"] == "OPEN" for p in prs["pr1"]) else "not_started"),
+                     2: pr2["state"].lower() if pr2 else "not_started"}
+        for p in R["job"]["prs"]:
+            n = p.get("number")
+            if n in gh_states and (p.get("state") or "not_started") != gh_states[n]:
+                R["warnings"].append(f"the job's status.json says PR #{n} is {p.get('state')}, GitHub says {gh_states[n]}: the folder is stale; GitHub is the truth, update the folder only to what GitHub shows")
     if not R["tree_clean"]:
         R["warnings"].append("working tree has uncommitted changes")
 
@@ -318,15 +355,22 @@ def main():
     P(f"Branch: {branch}  local {R['refs']['local'] or 'absent'} · fork {R['refs']['fork'] or 'not pushed'} · org {R['refs']['org'] or 'absent'}"
       + (f" · local vs fork: {R['refs']['local_vs_fork']}" if R["refs"].get("local_vs_fork") else "")
       + (f"  (checkout is on {git('rev-parse', '--abbrev-ref', 'HEAD')} @ {R['head']})" if a.branch and a.branch != git("rev-parse", "--abbrev-ref", "HEAD") else ""))
-    P(f"Bases: {org_main} @ {R['bases']['main']} · {org_staging} @ {R['bases']['staging']} · main ahead of staging by {len(R['main_gap_to_staging'])} commits")
-    P(f"Working tree: {'clean' if R['tree_clean'] else 'DIRTY'}")
+    P(f"Bases: {org_main} @ {R['bases']['main']} · {org_staging} @ {R['bases']['staging']} · staging ahead of main by {R['staging_ahead_of_main']} commits · main ahead of staging by {len(R['main_gap_to_staging'])}")
+    wt = R.get("worktree")
+    if wt and wt["here"]:
+        P(f"Worktree: this checkout holds {branch} · working tree {'clean' if wt['clean'] else 'DIRTY'}")
+    elif wt:
+        P(f"Worktree for {branch}: {wt['path']} (working tree {'clean' if wt['clean'] else 'DIRTY'}) · this checkout: {'clean' if R['tree_clean'] else 'DIRTY'}")
+    else:
+        P(f"Worktree for {branch}: none (add one before working on it: git worktree add ../<name> {branch}) · this checkout: {'clean' if R['tree_clean'] else 'DIRTY'}")
     P(f"\nStage: {'#' + stage if stage != 'sync' else 'sync (resolve conflicts with staging)'}")
     for k, label in (("pr1", "PR #1"), ("pr2", "PR #2"), ("pr3", "PR #3")):
         for p in prs[k]:
             P(f"  {label}: #{p['number']} {p['state']} -> {p.get('baseRefName', 'main')} {p['url']}")
     if R.get("pr2_open"):
         o = R["pr2_open"]
-        P(f"  PR #2 state: mergeable={o.get('mergeable')} {o.get('mergeStateStatus')} draft={o.get('isDraft')} review={o.get('reviewDecision')}")
+        P(f"  PR #2 state: mergeable={o.get('mergeable')} {o.get('mergeStateStatus')} draft={o.get('isDraft')} review={o.get('reviewDecision')} updated {(o.get('updatedAt') or '')[:10]}")
+        P(f"  reviewers requested: {', '.join(o.get('requested') or []) or 'none'} · reviews: {'; '.join(o.get('reviews') or []) or 'none'}")
     if R.get("included_prs") is not None:
         P(f"\nPRs merged into staging since main ({len(R['included_prs'])}):")
         for p in R["included_prs"]:
@@ -358,10 +402,12 @@ def main():
             P(f"Migrations {label}: {mc.get('note')}")
         else:
             P(f"Migrations {label}: highest {mc['highest']:04d}; added {', '.join(mc['added']) or 'none'}; " + ("OK" if mc["ok"] else "PROBLEM: " + "; ".join(mc["problems"])))
+    if R.get("migration_target"):
+        P(f"Migration target: {R['migration_target']:04d} (above both bases)")
     if R.get("ci"):
         P("\nCI on the org head:")
         for r in R["ci"]:
-            P(f"  {r['name']}: {r['status']} {r.get('conclusion') or ''} @ {r['sha']} {r['url']}")
+            P(f"  {r['name']}: {r['status']} {r.get('conclusion') or ''} @ {r['sha']} on {r['date']}{' (before the base last moved)' if r['before_base_moved'] else ''} {r['url']}")
     if R["job"]:
         j = R["job"]
         P(f"\n/feature job: {j['slug']} (stage {j['stage']}) at {j['folder']}")

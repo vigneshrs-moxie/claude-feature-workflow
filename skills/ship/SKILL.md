@@ -21,10 +21,10 @@ Input: $ARGUMENTS. The stage, branch and `--dry` (preflight and body only, open 
 From the repository checkout, on the task branch (or pass `--branch`):
 
 ```bash
-python3 <skill>/preflight.py [--stage 1|2|3|sync] [--branch <name>] [--org <owner/repo>]
+python3 <skill>/preflight.py [--stage 1|2|3|sync] [--branch <name>] [--org <owner/repo>] [--no-fetch] [--json]
 ```
 
-It fetches both remotes and prints: remotes and which is the fork; the branch on local, fork and org; main and staging heads and how far main is ahead of staging; the PRs GitHub already has for the branch and the stage that follows; the commits and files the stage would carry; a merge simulation against the stage's base, with who changed each conflicting file; migration numbers checked against main **and** staging (the CI script's rules); risk flags from the paths; CI runs on the org head; and the `/feature` job folder that owns the branch, if any.
+It fetches both remotes (the one thing it writes: remote-tracking refs; `--no-fetch` skips it) and prints: remotes and which is the fork (the docs say `upstream`; this team's clones call the org remote `moxie`, and the preflight names it); the branch on local, fork and org, and the **worktree that holds it** (work there, never by checking the branch out in a checkout that holds other work); main and staging heads and how far apart they are; the PRs GitHub already has for the branch, the stage that follows, and for an open PR #2 its reviewers and reviews; the commits and files the stage would carry; a merge simulation against the stage's base, with who changed each conflicting file; migration numbers checked against main **and** staging (the CI script's rules) with the **target number** when they collide; risk flags from the paths; CI runs on the org head with their dates against the base's last move; and the `/feature` job folder that owns the branch, with its files and whether its `status.json` disagrees with GitHub.
 
 Read it all. **BLOCKERS stop the stage** until fixed; each warning is either fixed or named in the PR body. Then give the human the starting state in one block, the `agent-rules.md` format trimmed to what is known:
 
@@ -36,7 +36,13 @@ Stage next: PR #<n> <head> -> <base>; earlier PRs: …
 Blockers / warnings: …
 ```
 
-With a job folder, read its `workflow-status.md`, `review.md`, test report or `manual-test.md`, and any `pr1-body.md`: that is the evidence and wording to reuse. Without one, the commits, the diff and the human's answer to one question ("ticket or spec, and what to say it does?") are the material.
+With a job folder, read what it has (the preflight lists its files: `workflow-status.md`, `review.md` or `review/*.md`, `test-report.md` or `manual-test.md`, `pr1-body.md`): that is the evidence and wording to reuse. The folder can be stale (a `status.json` still at an earlier stage); GitHub is the truth. Without a folder, the commits, the diff and the human's answer to one question ("ticket or spec, and what to say it does?") are the material.
+
+**The stage's PR already exists** (the preflight lists it as OPEN): don't open another. Re-run the stage's checks against the current base, report what blocks it now (a migration number taken since, a conflict, foreign commits, a missing review, a body that states something no longer true), and offer, with a yes, to update its body (`gh pr edit <n> --repo <org repo> --body-file …`), set or clear draft (`gh pr ready`), or add the reviewer. **A fix after PR #1 merged** (a renumbered migration, a review change) takes the same road as a sync: commit it on the fork branch in its worktree, push with a yes, a follow-up fork → org PR that the human self-merges, and PR #2 picks it up; commits after Raj's approval need his fresh review. `--dry` stops after the report and the drafted body.
+
+**Migrations:** a number collision is fixed with `cd app && npx tsx scripts/renumber-migrations.ts --base <org>/staging` (preview; `--apply` renames the folders and fixes references; `--check` runs the CI script). Pass `--base` explicitly: the script's default is `upstream/main`, which this team's clones don't have. Renumbering is a migration edit: it needs the human's yes, and the number must clear **both** main and staging (the preflight prints the target).
+
+**Drafting with blockers:** write the body anyway, with the blocker named at the top the way the team does ("Draft: migration number to fix before review"), bracketed placeholders for evidence not yet produced, and no box ticked for a check that didn't run.
 
 ## 2. The stage
 
