@@ -1,0 +1,81 @@
+---
+name: ship
+description: Move a finished branch through the team's three pull-request stages from the terminal, outside a /feature job or after one hands off. Fork branch to the same-named org branch (PR #1, you self-review and merge), org branch to staging (PR #2, Raj reviews), staging to main (PR #3, the release summary), plus the sync route when PR #2 conflicts with staging. It reads the git workflow docs, runs a read-only preflight (remotes, PR state on GitHub, only-my-commits check, merge simulation, migration numbers against main and staging, risk flags, CI), writes the PR body in the team's style, and opens the PR only when you say so. Never merges, approves, pushes to staging or main, or deploys. Use when the user says ship, open the PR, PR #1/#2/#3, release, staging PR, sync with staging, or asks what would go to main.
+argument-hint: "[1 | 2 | 3 | release | sync | hotfix] [branch] [--dry]"
+---
+
+# Ship: the three PR stages
+
+Input: $ARGUMENTS. The stage, branch and `--dry` (preflight and body only, open nothing) are optional; the preflight works the rest out.
+
+## Rules that hold throughout
+
+- **Source of truth:** `~/.claude/skills/feature/git-workflow.md` (the short version) and the docs it points to in `~/Projects/moxie-portal-git-workflow/docs/engineering/git-workflow/`. Read the short version first, then for the stage you are on: `fork-to-release.md` and `pull-requests.md` (all stages), `branch-sync.md` (PR #2), `staging-conflicts.md` (sync), `release-and-migrations.md` (PR #3), `bugfix-process.md` (hotfix). When this skill and the docs disagree, the docs win; say so.
+- **You open PRs and push only with the human's explicit yes, one yes per action**, after showing exactly what will happen: remote, head repo + ref, base repo + ref, title. Push only to the fork. Create an org branch only with a yes for that action.
+- **Never:** push to or merge into `staging` or `main`; merge or approve any PR; force-push; rebase a shared branch; apply migrations to a shared database; deploy; call anything deployed or approved that GitHub doesn't show.
+- **Report what ran.** A check you did not run is "not run", in the PR body and in the reply.
+- `<skill>` below is this skill's folder (`~/.claude/skills/ship` when installed).
+
+## 1. Preflight (read-only)
+
+From the repository checkout, on the task branch (or pass `--branch`):
+
+```bash
+python3 <skill>/preflight.py [--stage 1|2|3|sync] [--branch <name>] [--org <owner/repo>]
+```
+
+It fetches both remotes and prints: remotes and which is the fork; the branch on local, fork and org; main and staging heads and how far main is ahead of staging; the PRs GitHub already has for the branch and the stage that follows; the commits and files the stage would carry; a merge simulation against the stage's base, with who changed each conflicting file; migration numbers checked against main **and** staging (the CI script's rules); risk flags from the paths; CI runs on the org head; and the `/feature` job folder that owns the branch, if any.
+
+Read it all. **BLOCKERS stop the stage** until fixed; each warning is either fixed or named in the PR body. Then give the human the starting state in one block, the `agent-rules.md` format trimmed to what is known:
+
+```text
+Task: …  Kind: feature | bug | maintenance
+Fork: <remote> = <owner/repo>  Org: <remote> = <owner/repo>
+Branch: <name> @ <sha>; fork <sha>; org <sha or absent>; base moxie/main @ <sha>
+Stage next: PR #<n> <head> -> <base>; earlier PRs: …
+Blockers / warnings: …
+```
+
+With a job folder, read its `workflow-status.md`, `review.md`, test report or `manual-test.md`, and any `pr1-body.md`: that is the evidence and wording to reuse. Without one, the commits, the diff and the human's answer to one question ("ticket or spec, and what to say it does?") are the material.
+
+## 2. The stage
+
+### PR #1: fork branch → same-named org branch
+
+1. The org branch must exist from `moxie/main` at the task's base. If the preflight says it's absent: ask the human to create it, or for a yes to run `git push <org> <main sha>:refs/heads/<branch>` yourself. Never point PR #1 at staging or at another task's branch.
+2. If the branch is behind `moxie/main`, bring it in before pushing: `git merge <org>/main` (a merge, never a rebase once the branch is on the fork). Re-run the preflight.
+3. Checks: ask once, with the recommendation to run them, then run what the human allows from `app/`: `npm run check`, `npm run build`, and focused tests. Record exact results. (In a `/feature` job these usually ran already; reuse the report and say when.)
+4. Full-diff self-review material: with a job, `review.md`; without, read the whole diff and list what you checked and anything you'd change. The human reviews their own PR #1 and merges it; you don't.
+5. Body from `<skill>/pr-body.md` (PR #1). Title in the repo's style: `feat(area): what changed`, `fix(area): …`, or the batch style the team uses (`Oct 19 batch: …`).
+6. With a yes: `git fetch <org>`, `git push -u <fork> <branch>`, then
+   `gh pr create --repo <org repo> --head <fork owner>:<branch> --base <branch> --title "…" --body-file <scratchpad>/pr1-body.md`.
+   Show the URL and say: you self-review and merge this one; nothing else runs until it has merged.
+
+### PR #2: org branch → staging
+
+1. PR #1 must show **MERGED** on GitHub (the preflight checks); the org head must contain the fork head.
+2. **Only this task's commits:** `git log --oneline <org>/staging..<org>/<branch>` must list the task's commits plus the PR #1 merge. If the preflight lists foreign commits, main is ahead of staging: the main → staging sync PR must merge first (or, with a yes, rebuild the branch on staging per `branch-sync.md`). Don't open PR #2 carrying other people's work.
+3. Merge simulation conflicts → the **sync** route below, then come back here. Migration numbers must pass against the current staging (and main). Re-run the preflight after anything moves.
+4. Body from `pr-body.md` (PR #2) with the scope-check paragraph and the files-changed count a reviewer can compare on GitHub. Title as PR #1, or `… into staging: …` the way the team writes it.
+5. With a yes: `gh pr create --repo <org repo> --head <branch> --base staging --title "…" --body-file …` (head is the **org** branch; `gh` resolves a bare branch name to the org's own branch when `--repo` is the org). Add `--draft` when conflicts remain. Request Raj's review only when the human says to (`gh pr edit <n> --add-reviewer <handle>`); his submitted approval and green, fresh checks are required before a human merges.
+
+### PR #3: staging → main (the release summary)
+
+1. Preflight `--stage 3`: every commit and every PR merged into staging since main, the diff, migrations, risk flags, CI on staging, and whether a release PR is already open.
+2. Staging QA signoff is a human fact: ask who tested the deployed staging and what passed; don't invent it. The deployment and migration jobs can't be inspected from here; say so.
+3. Body from `pr-body.md` (PR #3): **all** included PRs, not only the one that prompted the release; migrations and their before/after-deploy order (a migration whose column live code already reads goes before the deploy, by hand); config; evidence; owner; rollback; smoke tests. Title in the team's style: what goes to prod, e.g. `Portal Feedback, Role Template Copy and Collection Rate to prod`.
+4. With a yes: `gh pr create --repo <org repo> --head staging --base main --title "…" --body-file …`. A merge commit, not a squash. Approval must come from someone other than the author; the release owner merges and watches the deploy.
+
+### Sync: PR #2 conflicts with staging
+
+Follow `staging-conflicts.md` step by step; the preflight already lists the conflicting files and the staging commits that touched them. In the task's worktree, clean tree: `git merge --ff-only <org>/<branch>` (after PR #1 merged), `git merge --no-ff <org>/staging`, resolve each conflict (read "Resolving a conflict" and "Things that bite" first), `npx prisma generate` if `schema.prisma` came in, typecheck and focused tests, commit with each conflict named, `git diff --stat <org>/staging HEAD` must list only this task's files, `npm run check`, then with a yes push to the fork and open the sync PR (fork → org branch) with the body from `pr-body.md` (Sync). After it merges, PR #2 is mergeable again; remove the draft notice.
+
+### Hotfix (only when the human says so)
+
+PR #1 as usual from a `fix/*` branch cut from main; PR #2 targets **main** instead of staging, with the human's explicit release-owner authorization recorded in the body; then a reviewed `main → staging` sync. Never choose this route yourself.
+
+## 3. After opening
+
+- Reply with the URL, the exact head → base, what the human does next (merge PR #1 themselves; ask Raj; release owner), and what you did not run.
+- With a `/feature` job folder: update its `status.json` `prs[<n>]` (`url`, `state: "open"`) and `stage` (`pr1`, `pr2`, `pr3`), and add a line to `workflow-status.md`, so the Workshop shows it. Record only what GitHub shows.
+- End with the `agent-rules.md` "Final agent handoff format", filled with what is actually known; unknowns stay "no" or "not run".
