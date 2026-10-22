@@ -71,13 +71,13 @@ When there is no explicit go-ahead (a bare invocation) and a check fails, or the
 
 Once the human approves spec, implementation plan and test plan by version (or the quick plan, on the quick route) and says to implement:
 
-- creating the feature branch and its dedicated worktree from the latest `moxie/main`, per the git workflow file (`~/.claude/skills/feature/git-workflow.md`); the matching org branch is still a separate yes;
+- creating the feature branch and its dedicated worktree from the latest `moxie/main`, per the git workflow file (`~/.claude/skills/feature/git-workflow.md`); and the matching org branch, created once with the create-only `gh api` call in that file (never a push to the org);
 - code and test changes the approved plan describes;
 - one local commit per plan step (never pushed);
 - **local checks** the approved test plan (or the quick plan's "How it's checked") lists that touch no shared data: lint, typecheck, in-memory unit tests (`npm run check`) and `npm run build`;
 - on the quick route, the review with the chosen lenses and fix rounds that stay inside the quick plan.
 
-Still asked separately every time: anything that writes to a database (for example `npm run test:db`), migrations, starting servers, anything that could send email, installing dependencies, creating the org branch, pushing, opening PRs, requesting reviewers. Agents never approve, merge or deploy.
+Still asked separately every time: anything that writes to a database (for example `npm run test:db`), migrations, starting servers, anything that could send email, installing dependencies, pushing, opening PRs, requesting reviewers. Agents never approve, merge or deploy.
 
 A product question, or a discovery that would change the approved plan, stops implementation and comes back to the human.
 

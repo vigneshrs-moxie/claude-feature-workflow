@@ -268,7 +268,7 @@ def main():
     if stage == "1":
         base, head = org_main, branch
         if not R["refs"]["org"]:
-            R["warnings"].append(f"no org branch {branch} yet: it must be created from {org_main} @ {R['bases']['main']} before PR #1 (needs the human's yes)")
+            R["warnings"].append(f"no org branch {branch} yet: it must be created from {org_main} @ {R['bases']['main']} before PR #1 (create it with the create-only gh api call in SKILL.md)")
         if pr1_merged:
             R["warnings"].append("a PR #1 for this branch is already merged; a new PR #1 would carry only new commits")
         R["commits"] = commits(f"{base}..{head}")

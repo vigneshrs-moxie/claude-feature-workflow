@@ -11,7 +11,7 @@ Input: $ARGUMENTS. The stage, branch and `--dry` (preflight and body only, open 
 ## Rules that hold throughout
 
 - **Source of truth:** `~/.claude/skills/feature/git-workflow.md` (the short version) and the docs it points to in `~/Projects/moxie-portal-git-workflow/docs/engineering/git-workflow/`. Read the short version first, then for the stage you are on: `fork-to-release.md` and `pull-requests.md` (all stages), `branch-sync.md` (PR #2), `staging-conflicts.md` (sync), `release-and-migrations.md` (PR #3), `bugfix-process.md` (hotfix). When this skill and the docs disagree, the docs win; say so.
-- **You open PRs and push only with the human's explicit yes, one yes per action**, after showing exactly what will happen: remote, head repo + ref, base repo + ref, title. Push only to the fork. Create an org branch only with a yes for that action.
+- **You open PRs and push only with the human's explicit yes, one yes per action**, after showing exactly what will happen: remote, head repo + ref, base repo + ref, title. Push only to the fork. Creating the matching org branch is the exception: a standing yes, create-only, through `gh api` (step 1 of PR #1).
 - **Never:** push to or merge into `staging` or `main`; merge or approve any PR; force-push; rebase a shared branch; apply migrations to a shared database; deploy; call anything deployed or approved that GitHub doesn't show.
 - **Report what ran.** A check you did not run is "not run", in the PR body and in the reply.
 - `<skill>` below is this skill's folder (`~/.claude/skills/ship` when installed).
@@ -48,7 +48,7 @@ With a job folder, read what it has (the preflight lists its files: `workflow-st
 
 ### PR #1: fork branch → same-named org branch
 
-1. The org branch must exist from `moxie/main` at the task's base. If the preflight says it's absent: ask the human to create it, or for a yes to run `git push <org> <main sha>:refs/heads/<branch>` yourself. Never point PR #1 at staging or at another task's branch.
+1. The org branch must exist from `moxie/main` at the task's base. If the preflight says it's absent, create it: `gh api -X POST repos/<org>/<repo>/git/refs -f ref=refs/heads/<branch> -f sha=<moxie/main SHA>` (never `git push` to the org, never main, staging or a release branch). Never point PR #1 at staging or at another task's branch.
 2. If the branch is behind `moxie/main`, bring it in before pushing: `git merge <org>/main` (a merge, never a rebase once the branch is on the fork). Re-run the preflight.
 3. Checks: ask once, with the recommendation to run them, then run what the human allows from `app/`: `npm run check`, `npm run build`, and focused tests. Record exact results. (In a `/feature` job these usually ran already; reuse the report and say when.)
 4. Full-diff self-review material: with a job, `review.md`; without, read the whole diff and list what you checked and anything you'd change. The human reviews their own PR #1 and merges it; you don't.

@@ -22,7 +22,7 @@ Expected: `origin` = the developer's own personal fork, `moxie` = org `Moxie-Pes
 
 1. Report the starting state in the format of `agent-rules.md` ("Report the starting state before editing").
 2. `git fetch moxie --prune`, then create a dedicated worktree next to the repository: `git worktree add -b <branch> ../orbit-<slug> moxie/main`. One task = one branch = one worktree = one writer. Never work on top of an existing task worktree.
-3. The **matching org branch** (`moxie:<branch>`, from the same `moxie/main` SHA) is created only by an authorized human, or by the agent with the human's explicit yes for that action.
+3. Create the **matching org branch** (`moxie:<branch>`, from the same `moxie/main` SHA) yourself, right after the worktree: `gh api -X POST repos/<org>/<repo>/git/refs -f ref=refs/heads/<branch> -f sha=<moxie/main SHA>`, with both values written out. The human has given a standing yes for this one action (2026-10-22); it is create-only (GitHub refuses it when the branch exists) and never targets `main`, `staging` or a release branch. Never `git push` to `moxie`. If the call fails because the branch exists, check it points at the base SHA and brief any mismatch instead of changing it.
 4. Record branch, worktree path and base SHA in `workflow-status.md`.
 
 ## Commits
