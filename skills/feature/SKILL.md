@@ -118,6 +118,8 @@ The consolidated `review.md` is the **code-review report** the git workflow requ
 3. **PR #3** (release): draft the summary only if asked; the release owner runs it.
 End with the git workflow's final handoff format. You never approve, merge or deploy.
 
+**Summaries wanted.** A message with a `--- Summaries wanted ---` … `--- end ---` block (the Workshop's Summarise button) asks for missing Key points: write each listed file's summary per `status-json.md` §3, from the file on disk at the version named, and reply in one line. It opens no gate and changes no stage.
+
 ## Records
 
 You own the review and authorization log in `workflow-status.md`, plus `status.json` and `briefs/`; workers update the artifacts table and stage history. When requirements, findings or plans change materially, mark the approvals they invalidate as superseded and say so in the brief.

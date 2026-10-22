@@ -1,6 +1,6 @@
 # status.json and saved briefs
 
-After **every** brief, the conductor writes two files to the feature's private folder. They are for the Feature Workshop dashboard; `workflow-status.md` stays the human record. If the two ever disagree, `workflow-status.md` wins and the next brief corrects `status.json`.
+After **every** brief, the conductor writes two files (and the Key points of §3) to the feature's private folder. They are for the Feature Workshop dashboard; `workflow-status.md` stays the human record. If the two ever disagree, `workflow-status.md` wins and the next brief corrects `status.json`.
 
 ## 1. `briefs/<nnn>-<stage>.md`
 
@@ -79,3 +79,24 @@ Overwrite the whole file each time. Valid JSON, UTF-8, no comments. Use `null` f
 | times | ISO 8601 with offset |
 
 Also write `status.json` with `stage_state: "working"` when you dispatch a worker, so the dashboard shows work in progress between briefs.
+
+## 3. `summaries/`: Key points
+
+A short summary of each document and brief, shown above it in the Feature Workshop (Key points in the Docs tab, In short on a brief) so the human needn't read the whole thing. Before every brief, write one for each document the stage produced or changed, and one for the brief itself. Write from the file **on disk**, never from memory. Never edit an approved document for this.
+
+One file per document and version: `summaries/<file without .md/.json>[.v<version>].json`, the version exactly as on disk. Examples: `summaries/findings.v1.json`, `summaries/implementation-plan.v2.json`, `summaries/briefs/006-review.json` (briefs have no version), `summaries/spec.v0.3.json` (the product spec, which lives in the repository, is `spec`). Never overwrite another version's file.
+
+```json
+{
+  "schema_version": 1,
+  "file": "findings.md",
+  "version": "1",
+  "written": "2026-10-22T10:40:00-07:00",
+  "outcome": ["What it found or decided, in a line."],
+  "risks": ["What could go wrong or surprised you."],
+  "decisions": [{ "text": "What the human must decide?", "recommendation": "Your pick, or null" }],
+  "changed": ["What is different from the previous version or brief."]
+}
+```
+
+Each of `outcome`, `risks`, `changed`: at most 3 lines of about 140 characters; `decisions`: at most 5. Leave a part `[]` when there is nothing to say (`changed` is `[]` on a first version). Plain language; `**bold**` and `` `code` `` are allowed. Nothing the document does not say.
