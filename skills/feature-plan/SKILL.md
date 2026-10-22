@@ -7,7 +7,7 @@ disable-model-invocation: true
 
 # Feature plan
 
-Turn the spec and the **reviewed** findings into two private engineering artifacts, `implementation-plan.md` and `test-plan.md`, then stop at a **gate**. This stage proposes; it does not code.
+Turn the spec and the **reviewed** findings into the private plan artifacts, `implementation-plan.md` and `test-plan.md`, plus the two the human hands on to the reviewer, `acceptance.md` (what it needs to be ready for staging) and `dev-tests.md` (one-line tests the developer runs by hand), all in [plan-templates.md](plan-templates.md); then stop at a **gate**. This stage proposes; it does not code.
 
 Input: $ARGUMENTS
 
@@ -52,7 +52,7 @@ Done when every V1 FR and AC is traced or explicitly marked BLOCKED, and every s
 
 1. Update `workflow-status.md`: plan and test-plan paths and versions, their basis, "feature-plan · presented for review".
 2. Present the gate: the proposed solution in a few lines, alternatives that matter, stages, data changes, the test strategy, blocked and conditional parts, unresolved questions, artifact paths and versions, and the spec's approval status.
-3. State what coding needs: human approval of the current spec, this implementation plan and this test plan, each by version. PR creation, merge and deployment need their own authorization.
+3. State what coding needs: human approval of the current spec, this implementation plan, this test plan and `acceptance.md`, each by version (`dev-tests.md` goes with them). PR creation, merge and deployment need their own authorization.
 4. **Stop.** Implementation is a separate request after that approval.
 
 Done when both plans are saved, `workflow-status.md` shows "presented for review" at their versions, and the gate is presented.
@@ -63,4 +63,4 @@ A requested change keeps work in this stage: update the plan, bump its version, 
 
 ## Scope boundary
 
-The application checkout stays read-only. Writes only `implementation-plan.md`, `test-plan.md` and `workflow-status.md` in the private folder.
+The application checkout stays read-only. Writes only `implementation-plan.md`, `test-plan.md`, `acceptance.md`, `dev-tests.md` and `workflow-status.md` in the private folder.

@@ -4,7 +4,7 @@
 
 Check the artifact **on disk**, not the worker's summary of it.
 
-- **Traceable:** every V1 FR has an AC; every AC has a test in the test plan; every plan step cites FRs. For a quick plan or `requirements.md`: every numbered criterion has a check or a manual step.
+- **Traceable:** every V1 FR has an AC; every AC has a test in the test plan; every plan step cites FRs; every spec AC is covered by an item in `acceptance.md`, and every acceptance item by a line in `dev-tests.md`; dev tests are one line each, in plain words. For a quick plan or `requirements.md`: every numbered criterion has a check or a manual step.
 - **Nothing invented:** no business rule, permission, audience, timing or notification behavior that the spec does not confirm. Recommendations stay labeled.
 - **Evidence:** claims about the code cite file:line; spot-check two or three of the citations yourself.
 - **Honest checks:** "ran" vs "proposed" is accurate; nothing claims a check passed that did not run.

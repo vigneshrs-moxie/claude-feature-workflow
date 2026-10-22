@@ -41,7 +41,7 @@ Note the repository, current branch and working-tree state with read-only git. A
 | Refine (large, or post-investigation) | `feature-spec-writer` | spec path, findings path if post-investigation, answers | spec vN+1, questions, readiness |
 | Wireframe ("Screens"; L2 after the spec, L3 after refine) | `feature-wireframer` | spec path + version, repo path, private folder; on a revision, the feedback lines verbatim | `wireframes.html`, `wireframes.json` vN |
 | Investigate | `feature-investigator` | spec path + version, repo path, private folder, scope, `wireframes.json` if any | `findings.md` |
-| Plan | `feature-planner` | spec, findings, `wireframes.json` if any, private folder, provisional scope if any | `implementation-plan.md`, `test-plan.md` |
+| Plan | `feature-planner` | spec, findings, `wireframes.json` if any, private folder, provisional scope if any | `implementation-plan.md`, `test-plan.md`, `acceptance.md`, `dev-tests.md` |
 | Implement | `feature-implementer` | approved versions, plan step(s), branch, approved checks | code + one local commit per step, `implementation-log.md` |
 | Test | `feature-tester` | test plan, branch/commit, approved checks | `test-report.md` |
 | Review | `feature-reviewer` + `feature-review-*` lenses (see below) | spec, plans, diff range | `review/<lens>.md`, then your consolidated `review.md` |
@@ -72,7 +72,7 @@ Answers to questions go back to the same worker (resume it with SendMessage) or 
 
 **After investigation.** Read the findings' Spec impact list. If it is non-empty, the brief proposes a spec update (refine in post-investigation mode) and shows those items as the questions. If the updated spec reaches code the findings did not cover, propose a small follow-up investigation before planning.
 
-**Plan.** The brief shows the proposed solution in a few lines, anything blocked, and asks for approval of spec vX, plan vY and test plan vZ together, naming the versions. Their yes to that, plus "implement", is the implementation go-ahead described in workflow-gates.md.
+**Plan.** The brief shows the proposed solution in a few lines, the acceptance items (`acceptance.md`, A-1…, one line each) and the number of dev tests, anything blocked, and asks for approval of spec vX, plan vY, test plan vZ and acceptance vA together, naming the versions. Their yes to that, plus "implement", is the implementation go-ahead described in workflow-gates.md.
 
 **Implement.**
 1. Read `~/.claude/skills/feature/git-workflow.md` (and the workflow documents it names when a detail matters). Verify remotes with `git remote -v`.
@@ -114,9 +114,11 @@ The consolidated `review.md` is the **code-review report** the git workflow requ
 
 **PRs.** Follow the git workflow file's three stages; each push, PR and reviewer request needs its own go-ahead.
 1. **PR #1** (fork branch → same-named org branch): confirm the org branch exists (or ask the human to reserve it), fetch `moxie/main` and bring it in, push to `origin` only, then open the PR with the body filled from the workflow's PR template, local check results and the review report. Brief the human: they self-review and merge it themselves.
-2. **PR #2** (org branch → `staging`), only after PR #1 has actually merged: prepare it with the org branch as head, request Raj's review when told to, and brief the human. Raj's submitted GitHub approval is required before a human merges.
+2. **PR #2** (org branch → `staging`), only after PR #1 has actually merged: before preparing it, update the Status table in `acceptance.md` and the Result column in `dev-tests.md` (from `manual-test.md`, the test report and the review; never mark a line passed that nobody ran), and brief any acceptance item not met. Prepare the PR with the org branch as head and the **How to test** section (`~/.claude/skills/ship/pr-body.md`) filled from those two files, request Raj's review when told to, and brief the human. Raj's submitted GitHub approval is required before a human merges.
 3. **PR #3** (release): draft the summary only if asked; the release owner runs it.
 End with the git workflow's final handoff format. You never approve, merge or deploy.
+
+**Acceptance and dev tests.** Every job has `acceptance.md` and `dev-tests.md` (templates: `~/.claude/skills/feature-plan/plan-templates.md`), approved with the plan. On the quick route you write them with the quick plan; at L0 you write a short pair (2 acceptance items, 2–3 dev tests) and show them with the diff. When a plan changes, they get a new version too. They are what the human tries before PR #1 and hands to the reviewer at PR #2.
 
 **Summaries wanted.** A message with a `--- Summaries wanted ---` … `--- end ---` block (the Workshop's Summarise button) asks for missing Key points: write each listed file's summary per `status-json.md` §3, from the file on disk at the version named, and reply in one line. It opens no gate and changes no stage.
 

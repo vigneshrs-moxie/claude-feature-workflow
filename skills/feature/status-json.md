@@ -72,7 +72,7 @@ Overwrite the whole file each time. Valid JSON, UTF-8, no comments. Use `null` f
 | `waiting_since` | when the brief was given; `null` when not waiting |
 | `questions` | the brief's "Decisions for you", max 3 (a clarify brief: max 5). `recommendation` is an option `id`; `options` may be `[]` for a free-text question. Each option may carry `consequence`: one line, under 120 characters, on what changes if that option is picked (the dashboard shows it under the option; always filled in a clarify brief, optional elsewhere) |
 | `decided_on_your_behalf` | every product or engineering choice you made without the human's explicit answer (for example under a blanket "use your recommendations"). Keep listing it with `confirmed: false` until the human confirms it; then `true` |
-| `artifacts` | paths relative to the private folder where possible, otherwise absolute. Versions exactly as on disk |
+| `artifacts` | paths relative to the private folder where possible, otherwise absolute. Versions exactly as on disk. From the plan on, include "Acceptance criteria" `acceptance.md` and "Dev tests" `dev-tests.md` |
 | `branch`, `worktree`, `base_sha` | from implementation on, as recorded in `workflow-status.md` (worktree path absolute); `null` before |
 | `prs` | always the three PR stages from the git workflow. `state`: `not_started` · `open` · `changes_requested` · `approved` · `merged` · `closed`. `url` once the PR exists. Record only what you saw on GitHub; never mark a PR merged or approved on assumption |
 | `session_id` | this conductor session's ID if you know it; otherwise `null` (the dashboard finds it from the session logs) |

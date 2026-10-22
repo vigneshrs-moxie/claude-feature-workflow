@@ -70,6 +70,20 @@ Self-review of the full diff: <what you checked, what you changed or accepted>. 
 
 <PR #1's evidence, plus: CI on this PR (link), and anything re-run against staging.>
 
+## How to test
+
+<From the job's `dev-tests.md` and `acceptance.md`, when there are any; otherwise from what the change does.>
+
+**Setup:** <branch or staging, database changes to apply, test users and roles, data needed>
+
+**Dev tests** (one line each; tried by <who> on <date>):
+- [x] D-1 <as who → where → do → see>
+- [ ] D-3 <…> (not run: <why>)
+
+**Ready for staging** (what we accept as OK to show stakeholders):
+- [x] A-1 <outcome> (D-1, D-2)
+- [ ] A-2 <outcome> (not met: <why, and whether that's accepted>)
+
 ## Risk, rollout, rollback
 
 <As PR #1; migration numbers re-checked against the current staging; what to apply to the staging database before or after merge, if anything.>

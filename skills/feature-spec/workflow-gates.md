@@ -65,7 +65,7 @@ When there is no explicit go-ahead (a bare invocation) and a check fails, or the
 
 - Investigation may run on a DRAFT or IN REVIEW spec when authorized; it discovers facts only. The spec keeps its true status.
 - Planning on a spec that is not APPROVED, or with Open questions that block parts of V1, needs the human to say explicitly that **provisional planning** on that version is authorized and for what scope. Label conditional and blocked sections in the plan.
-- Coding needs human approval of the current spec, the proposed solution and the test plan, by version. One explicit yes naming those versions is enough. On the quick route, or when the human skipped the spec or plan, the approved quick plan (or `requirements.md` plus the plan) by version stands in; it must state numbered acceptance criteria. Except L0, see job-options.md.
+- Coding needs human approval of the current spec, the proposed solution, the test plan and the acceptance criteria (`acceptance.md`), by version. One explicit yes naming those versions is enough. On the quick route, or when the human skipped the spec or plan, the approved quick plan (or `requirements.md` plus the plan) by version stands in; it must state numbered acceptance criteria. Except L0, see job-options.md.
 
 ### What the implementation go-ahead covers
 
@@ -111,7 +111,7 @@ Engineering artifacts live outside the application repository and outside anythi
 - the private destination the human supplies, or
 - `~/.claude/feature-work/<feature-slug>/`
 
-Contents: `workflow-status.md`, `options.json` (the human's job options, written by the dashboard; workers only read it), `findings.md`, `implementation-plan.md`, `test-plan.md` (or `quick-plan.md` / `requirements.md` stand-ins), and later `implementation-log.md`, `test-report.md`, `manual-test.md`, `review/`, `review.md`, `fable/`. The conductor also keeps `status.json` and `briefs/` for the dashboard (format: `~/.claude/skills/feature/status-json.md`). The product spec stays wherever `/feature-spec` saved it and stays product-level.
+Contents: `workflow-status.md`, `options.json` (the human's job options, written by the dashboard; workers only read it), `findings.md`, `implementation-plan.md`, `test-plan.md`, `acceptance.md`, `dev-tests.md` (or `quick-plan.md` / `requirements.md` stand-ins), and later `implementation-log.md`, `test-report.md`, `manual-test.md`, `review/`, `review.md`, `fable/`. The conductor also keeps `status.json` and `briefs/` for the dashboard (format: `~/.claude/skills/feature/status-json.md`). The product spec stays wherever `/feature-spec` saved it and stays product-level.
 
 ## `workflow-status.md`
 

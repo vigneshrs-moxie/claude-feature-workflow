@@ -93,3 +93,56 @@ Private engineering artifacts. Size each section to the change; a small enhancem
 ## Not covered
 - <gap and why>
 ```
+
+## acceptance.md
+
+What the feature needs before it is **ready for staging**: what we accept as OK to push to staging and show stakeholders. Written in plain words a stakeholder would recognise in a demo, not in test terms. Approved by version with the plan. It goes to the reviewer (Raj) in the PR #2 body.
+
+```markdown
+# <Feature name>: acceptance criteria (ready for staging)
+
+| | |
+|---|---|
+| **Version** | 1 |
+| **Basis** | spec v<x.y> (or quick plan v<n>) · implementation plan v<n> |
+| **Approval** | Not approved |
+
+## The feature does
+1. **A-1** <An outcome someone can see in a demo: who, where, what happens. "A manager can add a note to any customer in their office and sees it at the top of the Notes tab.">
+2. **A-2** <…>  (3–7 items; each maps to one or more spec ACs: "covers AC-001, AC-002")
+
+## It must not
+- **A-N1** <What must stay as it is, or must not be possible: "A tech can't see notes." "The customer list loads as before.">
+
+## Before it goes to staging
+- [ ] `cd app && npm run check` and `cd app && npm run build` pass on the branch
+- [ ] Every dev test in `dev-tests.md` passes, or its failure is named and accepted
+- [ ] No errors in the browser console on the pages touched
+- [ ] Database changes: <none | migration `NNNN_name`, applied to staging <before | after> merge>
+- [ ] <Anything else this job needs: copy reviewed, flag on, …>
+
+## Status
+| Item | Met? | How we know (dev test, check, review) |
+|---|---|---|
+| A-1 | Not yet | |
+```
+
+## dev-tests.md
+
+Simple ways for the developer to test what was built, by hand, on the job's branch (the Feature Workshop's Try it tab or a local server). **One line each**: who, where, what you do, what you should see. The developer runs these before PR #1; the same list goes to the reviewer in the PR #2 body.
+
+```markdown
+# <Feature name>: dev tests
+
+| | |
+|---|---|
+| **Version** | 1 |
+| **Basis** | acceptance v<n> · implementation plan v<n> |
+| **Setup** | <branch, database changes to apply, test user(s) and role(s), data needed> |
+
+| # | Test (as who → where → do → see) | Covers | Result |
+|---|---|---|---|
+| D-1 | Office manager → Customers → any customer → Notes → add "hello" → it shows at the top with your name and today's date | A-1 | |
+| D-2 | Tech → same customer → the Notes tab isn't there | A-N1 | |
+
+5–10 lines: the main path, an empty state, a permission or role case, one edge case (long text, zero rows, a bad input), and each "It must not" item. Result: `pass`, `fail: <what happened>` or `not run: <why>`.
