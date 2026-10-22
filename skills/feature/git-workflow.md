@@ -8,14 +8,20 @@ This file is the short version the conductor and workers act on.
 
 Expected: `origin` = the developer's own personal fork, `moxie` = org `Moxie-Pest-Control-Phoenix/moxie-portal`. Each developer's fork differs, so read it from `git remote -v`; if the remotes don't match this shape, stop and ask. Never assume; never treat `origin/main` or `origin/staging` as authoritative.
 
+## Orbit ticket first
+
+Every new internal task (feature, bug, urgent fix, code-producing investigation, CI, chore, refactor, docs) needs a **real Orbit ticket before its branch exists**. Record its ID (`ORBIT-123`), URL, owner and agreed scope in the starting-state report. Until the Portal Feedback API/MCP exists, the human creates or finds it in Portal Feedback; afterwards use only that authorized interface. Never invent an ID or use `ORBIT-TBD`; with no ticket, stay read-only and ask. A ticket does not approve scope, pushes, PRs, merges or release. Urgent incidents: short intake, ticket recorded before the fix branch; Raj's emergency release authority is unchanged.
+
 ## Baseline
 
 **Every task branch starts from the latest `moxie/main`, never `staging`** (human decision 2026-10-12). `staging` is only the PR #2 target.
 
 ## Branch name: the same in the fork and in the org
 
-- Feature: `feature/<slug>-v<N>` (e.g. `feature/role-template-copy-v1`); `-v2` only for a separately planned second increment.
-- Bug: `fix/<ticket-id>-<slug>`, or `fix/<slug>` with no ticket (never invent an ID). Also `ci/`, `chore/`, `docs/`, `refactor/`.
+- Feature: `feature/orbit-<number>-<slug>-v<N>` (e.g. `feature/orbit-123-ticket-comments-v1`); `-v2` only for a separately planned second increment, not a release version.
+- Bug/hotfix: `fix/orbit-<number>-<slug>` (e.g. `fix/orbit-124-comment-save`). Also `ci/`, `chore/`, `docs/`, `refactor/` + `orbit-<number>-<slug>`. No ticketless path.
+- Example numbers are illustrative; use the real ticket. One primary ticket per branch; never chain several IDs into the name (list extra tickets in the PR).
+- Existing branches are never renamed, rebased, force-pushed or recreated to comply; `main`, `staging`, `mirror/*`, `dependabot/*` and revert branches keep their names. No `release/*` scheme.
 - Short lowercase kebab-case. Before using a name, check it is free on both remotes: `git ls-remote --heads origin <branch>` and `git ls-remote --heads moxie <branch>`. Never overwrite or reuse someone else's branch.
 
 ## Starting a task (implementation stage)
@@ -51,7 +57,8 @@ Messages follow the common conventional style: `<type>(<area>): <what changed>`.
 | #3 release | `moxie:staging` → `moxie:main` | Release owner; approval from someone other than the author; a human merges. Agents may draft the summary only. |
 
 - Push only to the fork (`origin`), only with a yes; `git fetch moxie` and bring in `moxie/main` before every push. Ask before any rebase that would need a force-push.
-- Fill the body from `.github/PULL_REQUEST_TEMPLATE.md` (in the workflow folder). Check head repo+ref and base repo+ref at every stage.
+- Fill the body from `.github/PULL_REQUEST_TEMPLATE.md` (in the workflow folder), including **Primary Orbit ticket**, **Additional Orbit tickets**, **Related branches and PRs**, and spec/demo/knowledge-base/requirement-approval links where they apply. Task PR titles carry the primary ID: `feat(feedback): ORBIT-123 add ticket comments`. A release PR lists every included ticket and PR from the actual diff. Never write `Closes #123` for ORBIT-123. Commit messages don't need the ticket ID.
+- After each push or PR, register its URL on the ticket (authorized API/MCP when available; otherwise give the human the URL to paste into the ticket's **Branches** or **Pull requests** field). Never change ticket status or post a ticket comment as part of that. Check head repo+ref and base repo+ref at every stage.
 - Open PR #2 only after PR #1 has actually merged, and never with the fork as head.
 
 ## Stop for the human before
@@ -60,4 +67,4 @@ DB migrations, roles/auth/office visibility, shared-environment data, secrets, e
 
 ## Finishing
 
-End with the "Final agent handoff format" from `agent-rules.md`.
+End with the "Final agent handoff format" from `agent-rules.md`, including the ticket ID/URL and exact branch and PR URLs.
